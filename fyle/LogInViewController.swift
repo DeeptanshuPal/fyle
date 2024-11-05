@@ -7,7 +7,7 @@
 
 import UIKit
 
-class LogInViewController: UIViewController {
+class LogInViewController: GradientBGViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
