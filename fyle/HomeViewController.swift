@@ -31,9 +31,18 @@ class HomeViewController: GradientBGViewController {
         SharedTileView.layer.cornerRadius = 11
         SharedTileImageView.layer.cornerRadius = 20
         FavouritesImageView.layer.cornerRadius = 20
+        
+        
         AddButtonView.layer.cornerRadius = 75/2
+        
+        AddButtonView.layer.backgroundColor = UIColor.white.cgColor
+        AddButtonView.layer.shadowColor = UIColor.black.cgColor
+        //AddButtonView.layer.shadowOffset = CGSize(width: 0, height: 4)
+        
+        AddButtonView.layer.shadowOpacity = 0.5
         AddButtonView.layer.shadowOffset = .zero
-        AddButtonView.layer.shadowRadius = 10
+        AddButtonView.layer.shadowRadius = 5.0
+        AddButtonView.layer.masksToBounds = false
         
     }
     
