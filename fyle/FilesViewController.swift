@@ -7,25 +7,22 @@
 
 import UIKit
 
-class FilesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate {
+class FilesViewController: GradientBGViewController, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate {
     
     // Array for file names in the table view
     var files = [ "Aadhar Card","Health Insurance.pdf", "Waranty Card", "Mark Sheet"]
     var filteredFiles: [String] = []
 
-    // Outlets for the Title, Search Bar, Buttons, and TableView
-    @IBOutlet weak var mainTitleLabel: UILabel!
+    // Outlets for the Search Bar, Buttons, and TableView
     @IBOutlet weak var searchBar: UISearchBar!
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var button1: UIButton!
     @IBOutlet weak var button2: UIButton!
     @IBOutlet weak var button3: UIButton!
+    @IBOutlet var AddButtonView: UIView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        // Set up main title
-        mainTitleLabel.text = "Files"
 
         // Initialize filtered files array with all files
         filteredFiles = files
@@ -42,6 +39,16 @@ class FilesViewController: UIViewController, UITableViewDataSource, UITableViewD
         button1.setTitle("Vechicle", for: .normal)
         button2.setTitle("Health", for: .normal)
         button3.setTitle("Education", for: .normal)
+        
+        AddButtonView.layer.cornerRadius = 75 / 2
+        AddButtonView.layer.backgroundColor = UIColor.white.cgColor
+        AddButtonView.layer.shadowColor = UIColor.black.cgColor
+        AddButtonView.layer.shadowOpacity = 0.5
+        AddButtonView.layer.shadowOffset = .zero
+        AddButtonView.layer.shadowRadius = 5.0
+        AddButtonView.layer.masksToBounds = false
+        
+        tableView.layer.cornerRadius = 13
     }
     
     // MARK: - TableView DataSource Methods

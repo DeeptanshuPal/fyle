@@ -13,8 +13,7 @@ class SharedViewController: GradientBGViewController, UITableViewDataSource, UIT
     var files = ["Aadhar Card", "10th MarkSheet", "Birth Certificate","Heath Insurance"]
     var filteredFiles: [String] = []
 
-    // Outlets for the Title, Search Bar, Buttons, and TableView
-    @IBOutlet weak var mainTitleLabel: UILabel!
+    // Outlets for the Search Bar, Buttons, and TableView
     @IBOutlet weak var searchBar: UISearchBar!
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var button1: UIButton!
@@ -27,9 +26,6 @@ class SharedViewController: GradientBGViewController, UITableViewDataSource, UIT
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        // Set up main title
-        mainTitleLabel.text = "Shared"
 
         // Initialize filtered files array with all files
         filteredFiles = files
@@ -50,7 +46,16 @@ class SharedViewController: GradientBGViewController, UITableViewDataSource, UIT
         button1.layer.cornerRadius = 10
         button2.layer.cornerRadius = 10
         button3.layer.cornerRadius = 10
+        
+        
         AddButtonView.layer.cornerRadius = 75 / 2
+        AddButtonView.layer.backgroundColor = UIColor.white.cgColor
+        AddButtonView.layer.shadowColor = UIColor.black.cgColor
+        AddButtonView.layer.shadowOpacity = 0.5
+        AddButtonView.layer.shadowOffset = .zero
+        AddButtonView.layer.shadowRadius = 5.0
+        AddButtonView.layer.masksToBounds = false
+        
         tableView.layer.cornerRadius = 13
 
     }

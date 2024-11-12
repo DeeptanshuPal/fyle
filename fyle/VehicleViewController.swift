@@ -13,10 +13,10 @@ class VehicleViewController: GradientBGViewController, UITableViewDataSource, UI
     var filteredFiles: [String] = []
     var documentInteractionController: UIDocumentInteractionController?
 
-    @IBOutlet weak var mainTitleLabel: UILabel!
     @IBOutlet weak var searchBar: UISearchBar!
     @IBOutlet weak var tableView: UITableView!
-
+    @IBOutlet var AddButtonView: UIView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         searchBar.delegate = self
@@ -24,8 +24,6 @@ class VehicleViewController: GradientBGViewController, UITableViewDataSource, UI
             searchBar.barTintColor = .white                    // Set the search bar background color to white
             searchBar.backgroundImage = UIImage()              // Remove any default background
             
-        
-        mainTitleLabel.text = "Vehicle"
         filteredFiles = files
         
         searchBar.delegate = self
@@ -33,9 +31,18 @@ class VehicleViewController: GradientBGViewController, UITableViewDataSource, UI
         tableView.delegate = self
         
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "FileCell")
-        tableView.layer.cornerRadius = 13
         
-        makeNavigationBarTransparent()
+        
+        AddButtonView.layer.cornerRadius = 75 / 2
+        AddButtonView.layer.backgroundColor = UIColor.white.cgColor
+        AddButtonView.layer.shadowColor = UIColor.black.cgColor
+        AddButtonView.layer.shadowOpacity = 0.5
+        AddButtonView.layer.shadowOffset = .zero
+        AddButtonView.layer.shadowRadius = 5.0
+        AddButtonView.layer.masksToBounds = false
+        
+        tableView.layer.cornerRadius = 13
+
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -77,17 +84,7 @@ class VehicleViewController: GradientBGViewController, UITableViewDataSource, UI
     func documentInteractionControllerViewControllerForPreview(_ controller: UIDocumentInteractionController) -> UIViewController {
         return self
     }
-    func makeNavigationBarTransparent() {
-        // Check if there is a navigation controller
-        if let navigationController = self.navigationController {
-            // Set the navigation bar to be transparent
-            let appearance = UINavigationBarAppearance()
-            appearance.configureWithTransparentBackground()
-            navigationController.navigationBar.standardAppearance = appearance
-            navigationController.navigationBar.scrollEdgeAppearance = appearance
-            navigationController.navigationBar.compactAppearance = appearance
-            navigationController.navigationBar.isTranslucent = true
-        }
-    }
+
+
 
 }

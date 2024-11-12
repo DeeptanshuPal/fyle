@@ -66,8 +66,12 @@ class CategoriesViewController: GradientBGViewController {
         
         
         AddButtonView.layer.cornerRadius = 75/2
+        AddButtonView.layer.backgroundColor = UIColor.white.cgColor
+        AddButtonView.layer.shadowColor = UIColor.black.cgColor
+        AddButtonView.layer.shadowOpacity = 0.5
         AddButtonView.layer.shadowOffset = .zero
-        AddButtonView.layer.shadowRadius = 10
+        AddButtonView.layer.shadowRadius = 5.0
+        AddButtonView.layer.masksToBounds = false
     }
 
 }

@@ -25,7 +25,8 @@ class RemindersViewController:GradientBGViewController, UITableViewDataSource, U
     
     @IBOutlet weak var titleLabel2: UILabel!
     @IBOutlet weak var tableView2: UITableView!
-
+    @IBOutlet var AddButtonView: UIView!
+    
     override func viewDidLoad() {
         
         super.viewDidLoad()
@@ -48,6 +49,17 @@ class RemindersViewController:GradientBGViewController, UITableViewDataSource, U
         // Set titles for each label
         titleLabel1.text = "This Month"
         titleLabel2.text = "Future"
+        
+        AddButtonView.layer.cornerRadius = 75 / 2
+        AddButtonView.layer.backgroundColor = UIColor.white.cgColor
+        AddButtonView.layer.shadowColor = UIColor.black.cgColor
+        AddButtonView.layer.shadowOpacity = 0.5
+        AddButtonView.layer.shadowOffset = .zero
+        AddButtonView.layer.shadowRadius = 5.0
+        AddButtonView.layer.masksToBounds = false
+        
+        tableView1.layer.cornerRadius = 13
+        tableView2.layer.cornerRadius = 13
     }
 
     // MARK: - TableView DataSource Methods
