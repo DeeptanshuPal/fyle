@@ -28,42 +28,42 @@
                                 <rect key="frame" x="98" y="478" width="209" height="20"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="16"/>
-                                <color key="textColor" red="1" green="0.58431372550000005" blue="0.0039215686269999999" alpha="1" colorSpace="calibratedRGB"/>
+                                <color key="textColor" red="0.37254902719999999" green="0.55686277149999996" blue="0.79607844350000001" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Categorise Documents" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="aUS-92-fJr">
                                 <rect key="frame" x="98" y="577" width="174" height="20"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="16"/>
-                                <color key="textColor" red="0.098039215690000001" green="0.77647058820000003" blue="0.34509803919999998" alpha="1" colorSpace="calibratedRGB"/>
+                                <color key="textColor" red="0.37254902719999999" green="0.55686277149999996" blue="0.79607844350000001" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Automatically set reminders when uploaded a file in this or that format accordingly." lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="yf6-xb-ZcW">
                                 <rect key="frame" x="95" y="296" width="265" height="30"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" name=".AppleSystemUIFont" family=".AppleSystemUIFont" pointSize="12"/>
-                                <color key="textColor" red="0.87450980392156863" green="0.40784313725490196" blue="0.40784313725490196" alpha="1" colorSpace="calibratedRGB"/>
+                                <color key="textColor" red="0.29803921568627451" green="0.69803921568627447" blue="0.89411764705882346" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Summarises Text and retrieves important information from the Document." lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="N3Q-8p-LtD">
                                 <rect key="frame" x="95" y="391" width="265" height="34"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" name=".AppleSystemUIFont" family=".AppleSystemUIFont" pointSize="12"/>
-                                <color key="textColor" red="0.29725080728530884" green="0.69902962446212769" blue="0.89296025037765503" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <color key="textColor" red="0.29803921568627451" green="0.69803921568627447" blue="0.89411764705882346" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Share with your Friends and Family the files you prefer." lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="vym-1c-hHw">
                                 <rect key="frame" x="98" y="504" width="265" height="30"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" name=".AppleSystemUIFont" family=".AppleSystemUIFont" pointSize="12"/>
-                                <color key="textColor" red="0.99215686274509807" green="0.76470588235294112" blue="0.31764705882352939" alpha="1" colorSpace="calibratedRGB"/>
+                                <color key="textColor" red="0.29803921568627451" green="0.69803921568627447" blue="0.89411764705882346" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Categorise Documents to find it whenever required at the ease." lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4XC-x8-dAq">
                                 <rect key="frame" x="98" y="602" width="265" height="30"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" name=".AppleSystemUIFont" family=".AppleSystemUIFont" pointSize="12"/>
-                                <color key="textColor" red="0.3529411764705882" green="0.80000000000000004" blue="0.47843137254901957" alpha="1" colorSpace="calibratedRGB"/>
+                                <color key="textColor" red="0.29803921568627451" green="0.69803921568627447" blue="0.89411764705882346" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="en4-uQ-gOr">
@@ -80,17 +80,17 @@
                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Zpr-BF-Smv">
                                         <rect key="frame" x="7" y="6.3333333333333144" width="35" height="35"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <color key="tintColor" red="0.77254901960784317" green="0.25098039215686274" blue="0.25098039215686274" alpha="1" colorSpace="calibratedRGB"/>
+                                        <color key="tintColor" red="0.29803922770000002" green="0.44705885649999999" blue="0.63529413940000001" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                         <imageReference key="image" image="bell.badge" catalog="system" symbolScale="small" renderingMode="template" variableValue="0.0"/>
                                     </imageView>
                                 </subviews>
-                                <color key="backgroundColor" red="1" green="0.75686274509999996" blue="0.75686274509999996" alpha="1" colorSpace="calibratedRGB"/>
+                                <color key="backgroundColor" red="0.81960785390000002" green="0.91764706370000004" blue="0.99215686319999996" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                             </view>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Automatically set Reminders" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="WZY-ma-GGP">
                                 <rect key="frame" x="95" y="271.66666666666669" width="217" height="20"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="16"/>
-                                <color key="textColor" red="0.7725490196" green="0.25098039220000001" blue="0.25098039220000001" alpha="1" colorSpace="calibratedRGB"/>
+                                <color key="textColor" red="0.37254902719999999" green="0.55686277149999996" blue="0.79607844350000001" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="wuV-eN-fvf">
@@ -100,7 +100,7 @@
                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Zg5-iU-qVn">
                                         <rect key="frame" x="7" y="6.3333333333333144" width="35" height="35"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <color key="tintColor" red="0.25098039215686274" green="0.4823529411764706" blue="0.77254901960784317" alpha="1" colorSpace="calibratedRGB"/>
+                                        <color key="tintColor" red="0.29803922770000002" green="0.44705885649999999" blue="0.63529413940000001" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                         <imageReference key="image" image="doc.text" catalog="system" symbolScale="small" renderingMode="template" variableValue="0.0"/>
                                     </imageView>
                                 </subviews>
@@ -113,11 +113,11 @@
                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="X62-TX-D7W">
                                         <rect key="frame" x="7" y="6.3333333333333144" width="35" height="35"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <color key="tintColor" red="1" green="0.58431372549019611" blue="0.0039215686274509803" alpha="1" colorSpace="calibratedRGB"/>
+                                        <color key="tintColor" red="0.23921570180000001" green="0.35686278339999999" blue="0.50588238240000005" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                         <imageReference key="image" image="person.2" catalog="system" symbolScale="small" renderingMode="template" variableValue="0.0"/>
                                     </imageView>
                                 </subviews>
-                                <color key="backgroundColor" red="1" green="0.93333333333333335" blue="0.75686274509803919" alpha="1" colorSpace="calibratedRGB"/>
+                                <color key="backgroundColor" red="0.81960785390000002" green="0.91764706370000004" blue="0.99215686319999996" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                             </view>
                             <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="GZb-nS-MT1">
                                 <rect key="frame" x="34" y="580" width="50" height="50"/>
@@ -126,17 +126,17 @@
                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="st3-b5-bIG">
                                         <rect key="frame" x="7" y="6.3333333333333144" width="35" height="35"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                        <color key="tintColor" red="0.098039215686274508" green="0.77647058823529413" blue="0.34509803921568627" alpha="1" colorSpace="calibratedRGB"/>
+                                        <color key="tintColor" red="0.29803922770000002" green="0.44705885649999999" blue="0.63529413940000001" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                         <imageReference key="image" image="square.grid.2x2" catalog="system" symbolScale="small" renderingMode="template" variableValue="0.0"/>
                                     </imageView>
                                 </subviews>
-                                <color key="backgroundColor" red="0.75686274509803919" green="1" blue="0.85490196078431369" alpha="1" colorSpace="calibratedRGB"/>
+                                <color key="backgroundColor" red="0.81960785390000002" green="0.91764706370000004" blue="0.99215686319999996" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                             </view>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Summarising Text" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="iyC-wJ-Xhv">
                                 <rect key="frame" x="95" y="371" width="136" height="20"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="16"/>
-                                <color key="textColor" red="0.0" green="0.45882352939999999" blue="0.89019607840000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <color key="textColor" red="0.37254902719999999" green="0.55686277149999996" blue="0.79607844350000001" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                 <nil key="highlightedColor"/>
                             </label>
                         </subviews>
@@ -789,36 +789,14 @@
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" white="0.66666666669999997" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                             </imageView>
-                            <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="file_name.pdf" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="GoZ-JZ-wtm">
+                            <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" placeholder="Document Name" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="GoZ-JZ-wtm">
                                 <rect key="frame" x="24" y="279" width="349" height="34"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <textInputTraits key="textInputTraits"/>
                             </textField>
-                            <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="21/09/2029" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="kUu-2Y-jVZ">
-                                <rect key="frame" x="63" y="335" width="310" height="34"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                <textInputTraits key="textInputTraits"/>
-                            </textField>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="calendar" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="8vg-xZ-QFS">
-                                <rect key="frame" x="24" y="335" width="34" height="34"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <color key="tintColor" red="0.23529411764705882" green="0.25490196078431371" blue="0.27450980392156865" alpha="1" colorSpace="calibratedRGB"/>
-                            </imageView>
-                            <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="10:00 AM" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="E8y-iI-Rky">
-                                <rect key="frame" x="63" y="379.66666666666697" width="310" height="34"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                                <textInputTraits key="textInputTraits"/>
-                            </textField>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="clock" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="Vst-Hp-K8v">
-                                <rect key="frame" x="24" y="379.66666666666697" width="34" height="34"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <color key="tintColor" red="0.23529411764705882" green="0.25490196078431371" blue="0.27450980392156865" alpha="1" colorSpace="calibratedRGB"/>
-                            </imageView>
-                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" text="Summary :  " textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="jn4-yO-blr">
-                                <rect key="frame" x="24" y="434" width="349" height="132"/>
+                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" text="Summary of the Document" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="jn4-yO-blr">
+                                <rect key="frame" x="24" y="370" width="349" height="132"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                 <color key="textColor" systemColor="labelColor"/>
@@ -826,7 +804,7 @@
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                             </textView>
                             <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Fdd-L3-DAt">
-                                <rect key="frame" x="24" y="586" width="349" height="35"/>
+                                <rect key="frame" x="24" y="510" width="349" height="35"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <subviews>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Confidential Document" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="hvf-uF-WSH">
@@ -843,8 +821,26 @@
                                 </subviews>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                             </view>
+                            <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="0j5-4H-T0J">
+                                <rect key="frame" x="24" y="321" width="349" height="41"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <subviews>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Date &amp; Time" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="kQU-21-3d1">
+                                        <rect key="frame" x="8" y="10" width="94" height="21"/>
+                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                    <datePicker contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" datePickerMode="dateAndTime" minuteInterval="1" translatesAutoresizingMaskIntoConstraints="NO" id="HA1-Gq-GDw">
+                                        <rect key="frame" x="123" y="-6" width="218" height="52"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                    </datePicker>
+                                </subviews>
+                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                            </view>
                             <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Bnh-cP-2BH">
-                                <rect key="frame" x="24" y="646" width="349" height="35"/>
+                                <rect key="frame" x="22" y="565" width="349" height="35"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="tintColor" red="0.23921568630000001" green="0.47843137250000001" blue="0.7725490196" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                                 <state key="normal" title="Button"/>
@@ -858,16 +854,15 @@
                         <outlet property="FileThumbnailImageView" destination="dnl-u8-I8i" id="KfA-R1-7oh"/>
                         <outlet property="confidentialDocView" destination="Fdd-L3-DAt" id="QaZ-Ms-3QO"/>
                         <outlet property="confidentialSwitch" destination="Um4-t0-rB5" id="hv7-or-Gk5"/>
-                        <outlet property="dateTextField" destination="kUu-2Y-jVZ" id="dbW-Z5-4j8"/>
                         <outlet property="fileNameTextField" destination="GoZ-JZ-wtm" id="4fC-g8-F3r"/>
+                        <outlet property="reminderDate" destination="0j5-4H-T0J" id="FAH-JA-UpN"/>
                         <outlet property="saveButton" destination="Bnh-cP-2BH" id="9Mp-uh-lcj"/>
                         <outlet property="summaryTextView" destination="jn4-yO-blr" id="Ahi-dM-t4n"/>
-                        <outlet property="timeTextField" destination="E8y-iI-Rky" id="qDq-KO-j8q"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="5ag-JV-U7w" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-724" y="1554"/>
+            <point key="canvasLocation" x="-732.06106870229007" y="1512.6760563380283"/>
         </scene>
         <!--Categories-->
         <scene sceneID="xjx-Pm-Y0b">
@@ -1988,10 +1983,8 @@
         <image name="airplane" catalog="system" width="128" height="115"/>
         <image name="bell.badge" catalog="system" width="117" height="128"/>
         <image name="book.fill" catalog="system" width="128" height="95"/>
-        <image name="calendar" catalog="system" width="128" height="107"/>
         <image name="car" catalog="system" width="128" height="95"/>
         <image name="car.fill" catalog="system" width="128" height="95"/>
-        <image name="clock" catalog="system" width="128" height="123"/>
         <image name="coat" catalog="system" width="128" height="109"/>
         <image name="cross.case" catalog="system" width="128" height="100"/>
         <image name="cross.case.fill" catalog="system" width="128" height="100"/>

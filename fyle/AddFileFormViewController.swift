@@ -11,8 +11,7 @@ class AddFileFormViewController: UIViewController {
 
     @IBOutlet var FileThumbnailImageView: UIImageView!
     @IBOutlet var fileNameTextField: UITextField!
-    @IBOutlet var dateTextField: UITextField!
-    @IBOutlet var timeTextField: UITextField!
+    @IBOutlet weak var reminderDate: UIView!
     @IBOutlet var summaryTextView: UITextView!
     @IBOutlet var confidentialDocView: UIView!
     @IBOutlet var confidentialSwitch: UISwitch!
@@ -24,15 +23,4 @@ class AddFileFormViewController: UIViewController {
         // Do any additional setup after loading the view.
     }
     
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
-    }
-    */
-
 }
