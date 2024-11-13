@@ -114,6 +114,9 @@ class HomeViewController: GradientBGViewController, UIImagePickerControllerDeleg
             saveSelectedImagesAsPDF()
         }
         picker.dismiss(animated: true, completion: nil)
+        if let hvc = storyboard?.instantiateViewController(identifier: "AddFileFormViewController"){
+            present(hvc, animated: true)
+        }
     }
 
     @objc func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {

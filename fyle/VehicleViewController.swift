@@ -48,6 +48,9 @@ class VehicleViewController: GradientBGViewController, UITableViewDataSource, UI
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return filteredFiles.count
     }
+//    func numberOfSections(in tableView: UITableView) -> Int {
+//        <#code#>
+//    }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "FileCell", for: indexPath)
