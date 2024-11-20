@@ -4,6 +4,9 @@
 //
 //  Created by User@77 on 06/11/24.
 //
+//=========================================================================================================
+// === This is the initial version of the project before we completely revamped it prior to the MVP Review in Nov 20th 2024 ===
+//=========================================================================================================
 
 import UIKit
 import UniformTypeIdentifiers
