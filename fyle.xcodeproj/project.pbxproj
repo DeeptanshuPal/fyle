@@ -6,6 +6,13 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		0C85AC62E847BA2BD287F78C /* Pods_fyle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2FCE20312512FD95A6A96785 /* Pods_fyle.framework */; };
+		BF228E8DE9243204286A24AE /* Pods_fyle_fyleUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D3C9DC763F824A641A419490 /* Pods_fyle_fyleUITests.framework */; };
+		F9E4259A178BB0BF15172A3A /* Pods_fyleTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B94625A3FDE7813B947F432E /* Pods_fyleTests.framework */; };
+		FFE3391B2D2FCD4E004ECC01 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = FFE3391A2D2FCD4E004ECC01 /* GoogleService-Info.plist */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		37D861C72CCF8144002D85AA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -24,19 +31,23 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0DFA488747F1BC5932229FE0 /* Pods-fyle.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-fyle.release.xcconfig"; path = "Target Support Files/Pods-fyle/Pods-fyle.release.xcconfig"; sourceTree = "<group>"; };
+		2FCE20312512FD95A6A96785 /* Pods_fyle.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_fyle.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		35662A65F0CABC52D05F3285 /* Pods-fyle-fyleUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-fyle-fyleUITests.debug.xcconfig"; path = "Target Support Files/Pods-fyle-fyleUITests/Pods-fyle-fyleUITests.debug.xcconfig"; sourceTree = "<group>"; };
 		37D861B02CCF8143002D85AA /* fyle.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = fyle.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		37D861C62CCF8144002D85AA /* fyleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = fyleTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		37D861D02CCF8144002D85AA /* fyleUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = fyleUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		72E6CA40C9A95F24939F1DB1 /* Pods-fyle-fyleUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-fyle-fyleUITests.release.xcconfig"; path = "Target Support Files/Pods-fyle-fyleUITests/Pods-fyle-fyleUITests.release.xcconfig"; sourceTree = "<group>"; };
+		8B4907BBF29985130F5EAD7D /* Pods-fyleTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-fyleTests.debug.xcconfig"; path = "Target Support Files/Pods-fyleTests/Pods-fyleTests.debug.xcconfig"; sourceTree = "<group>"; };
+		B94625A3FDE7813B947F432E /* Pods_fyleTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_fyleTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		D3C9DC763F824A641A419490 /* Pods_fyle_fyleUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_fyle_fyleUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		ED15C4B6E51744EDDAE34E56 /* Pods-fyle.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-fyle.debug.xcconfig"; path = "Target Support Files/Pods-fyle/Pods-fyle.debug.xcconfig"; sourceTree = "<group>"; };
+		EF8A0CCE44D0E6F833DD5FE1 /* Pods-fyleTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-fyleTests.release.xcconfig"; path = "Target Support Files/Pods-fyleTests/Pods-fyleTests.release.xcconfig"; sourceTree = "<group>"; };
+		FFE338F22D2FCCA7004ECC01 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		FFE3391A2D2FCD4E004ECC01 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		314055142CE9F545000C6901 /* Exceptions for "Resources" folder in "fyle" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 37D861AF2CCF8143002D85AA /* fyle */;
-		};
 		3140551E2CE9F580000C6901 /* Exceptions for "Tests" folder in "fyle" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -81,9 +92,6 @@
 		};
 		314055132CE9F4D7000C6901 /* Resources */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				314055142CE9F545000C6901 /* Exceptions for "Resources" folder in "fyle" target */,
-			);
 			path = Resources;
 			sourceTree = "<group>";
 		};
@@ -119,6 +127,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0C85AC62E847BA2BD287F78C /* Pods_fyle.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -126,6 +135,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F9E4259A178BB0BF15172A3A /* Pods_fyleTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -133,6 +143,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BF228E8DE9243204286A24AE /* Pods_fyle_fyleUITests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -142,6 +153,8 @@
 		37D861A72CCF8143002D85AA = {
 			isa = PBXGroup;
 			children = (
+				FFE338F22D2FCCA7004ECC01 /* Info.plist */,
+				FFE3391A2D2FCD4E004ECC01 /* GoogleService-Info.plist */,
 				314055252CE9F60E000C6901 /* Views */,
 				314054F02CE9F302000C6901 /* Models */,
 				314054FD2CE9F3C2000C6901 /* Services */,
@@ -151,6 +164,8 @@
 				314055232CE9F5C6000C6901 /* App */,
 				314055152CE9F570000C6901 /* Tests */,
 				37D861B12CCF8143002D85AA /* Products */,
+				47A409F0BD89E1D54FD7D418 /* Pods */,
+				C4EB341847D2D93878B60D94 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -164,6 +179,29 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		47A409F0BD89E1D54FD7D418 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				ED15C4B6E51744EDDAE34E56 /* Pods-fyle.debug.xcconfig */,
+				0DFA488747F1BC5932229FE0 /* Pods-fyle.release.xcconfig */,
+				35662A65F0CABC52D05F3285 /* Pods-fyle-fyleUITests.debug.xcconfig */,
+				72E6CA40C9A95F24939F1DB1 /* Pods-fyle-fyleUITests.release.xcconfig */,
+				8B4907BBF29985130F5EAD7D /* Pods-fyleTests.debug.xcconfig */,
+				EF8A0CCE44D0E6F833DD5FE1 /* Pods-fyleTests.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
+		C4EB341847D2D93878B60D94 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				2FCE20312512FD95A6A96785 /* Pods_fyle.framework */,
+				D3C9DC763F824A641A419490 /* Pods_fyle_fyleUITests.framework */,
+				B94625A3FDE7813B947F432E /* Pods_fyleTests.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -171,9 +209,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 37D861D92CCF8144002D85AA /* Build configuration list for PBXNativeTarget "fyle" */;
 			buildPhases = (
+				85FBACC0DDD571884603B6C1 /* [CP] Check Pods Manifest.lock */,
 				37D861AC2CCF8143002D85AA /* Sources */,
 				37D861AD2CCF8143002D85AA /* Frameworks */,
 				37D861AE2CCF8143002D85AA /* Resources */,
+				490AD4847DE7ED60390FE7DA /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -190,8 +230,6 @@
 				37D861B22CCF8143002D85AA /* Storyboards */,
 			);
 			name = fyle;
-			packageProductDependencies = (
-			);
 			productName = fyle;
 			productReference = 37D861B02CCF8143002D85AA /* fyle.app */;
 			productType = "com.apple.product-type.application";
@@ -200,6 +238,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 37D861DE2CCF8144002D85AA /* Build configuration list for PBXNativeTarget "fyleTests" */;
 			buildPhases = (
+				8F4926CEBD7CAB2EFFD51E83 /* [CP] Check Pods Manifest.lock */,
 				37D861C22CCF8144002D85AA /* Sources */,
 				37D861C32CCF8144002D85AA /* Frameworks */,
 				37D861C42CCF8144002D85AA /* Resources */,
@@ -210,8 +249,6 @@
 				37D861C82CCF8144002D85AA /* PBXTargetDependency */,
 			);
 			name = fyleTests;
-			packageProductDependencies = (
-			);
 			productName = fyleTests;
 			productReference = 37D861C62CCF8144002D85AA /* fyleTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -220,9 +257,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 37D861E12CCF8144002D85AA /* Build configuration list for PBXNativeTarget "fyleUITests" */;
 			buildPhases = (
+				34A3204273B66BAA426B9BD1 /* [CP] Check Pods Manifest.lock */,
 				37D861CC2CCF8144002D85AA /* Sources */,
 				37D861CD2CCF8144002D85AA /* Frameworks */,
 				37D861CE2CCF8144002D85AA /* Resources */,
+				FCBDFC8780F09DC7CDE4C18E /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -230,8 +269,6 @@
 				37D861D22CCF8144002D85AA /* PBXTargetDependency */,
 			);
 			name = fyleUITests;
-			packageProductDependencies = (
-			);
 			productName = fyleUITests;
 			productReference = 37D861D02CCF8144002D85AA /* fyleUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
@@ -285,6 +322,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FFE3391B2D2FCD4E004ECC01 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -303,6 +341,109 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		34A3204273B66BAA426B9BD1 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-fyle-fyleUITests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		490AD4847DE7ED60390FE7DA /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-fyle/Pods-fyle-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-fyle/Pods-fyle-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-fyle/Pods-fyle-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		85FBACC0DDD571884603B6C1 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-fyle-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		8F4926CEBD7CAB2EFFD51E83 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-fyleTests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		FCBDFC8780F09DC7CDE4C18E /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-fyle-fyleUITests/Pods-fyle-fyleUITests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-fyle-fyleUITests/Pods-fyle-fyleUITests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-fyle-fyleUITests/Pods-fyle-fyleUITests-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		37D861AC2CCF8143002D85AA /* Sources */ = {
@@ -344,14 +485,16 @@
 /* Begin XCBuildConfiguration section */
 		37D861DA2CCF8144002D85AA /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = ED15C4B6E51744EDDAE34E56 /* Pods-fyle.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 86K9KU885Q;
+				DEVELOPMENT_TEAM = 6Y22PH5H76;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Resources/Info.plist;
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
@@ -362,7 +505,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "batch2-team9.fyle";
+				PRODUCT_BUNDLE_IDENTIFIER = TeamFyle.fyle;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -372,14 +515,16 @@
 		};
 		37D861DB2CCF8144002D85AA /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 0DFA488747F1BC5932229FE0 /* Pods-fyle.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 86K9KU885Q;
+				DEVELOPMENT_TEAM = 6Y22PH5H76;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Resources/Info.plist;
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
@@ -390,7 +535,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "batch2-team9.fyle";
+				PRODUCT_BUNDLE_IDENTIFIER = TeamFyle.fyle;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -519,6 +664,7 @@
 		};
 		37D861DF2CCF8144002D85AA /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 8B4907BBF29985130F5EAD7D /* Pods-fyleTests.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
@@ -538,6 +684,7 @@
 		};
 		37D861E02CCF8144002D85AA /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = EF8A0CCE44D0E6F833DD5FE1 /* Pods-fyleTests.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
@@ -557,6 +704,7 @@
 		};
 		37D861E22CCF8144002D85AA /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 35662A65F0CABC52D05F3285 /* Pods-fyle-fyleUITests.debug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -574,6 +722,7 @@
 		};
 		37D861E32CCF8144002D85AA /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 72E6CA40C9A95F24939F1DB1 /* Pods-fyle-fyleUITests.release.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;

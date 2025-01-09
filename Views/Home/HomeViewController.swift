@@ -11,7 +11,7 @@ import UniformTypeIdentifiers
 
 class HomeViewController: GradientBGViewController, UIDocumentPickerDelegate, UIImagePickerControllerDelegate & UINavigationControllerDelegate, AddFileFormDelegate, PHPickerViewControllerDelegate, UITableViewDelegate, UITableViewDataSource, UIDocumentInteractionControllerDelegate {
     
-    let favourites = ["Aadhar Card", "Health Insurance", "Warranty Card", "Mark Sheet", "Car Insurance", "Passport", "Driving License", "Pollution Control", "Certification", "Birth Certificate"]
+    let favourites = ["Aadhar Card", "Health Insurance", "Warranty Card", "Mark Sheet", "Car Insurance", "Birth Certificate"]
     
     var documentInteractionController: UIDocumentInteractionController?
     
@@ -20,30 +20,17 @@ class HomeViewController: GradientBGViewController, UIDocumentPickerDelegate, UI
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "favouriteCell", for: indexPath)
-        cell.textLabel?.text = favourites[indexPath.row]
+        let cell = tableView.dequeueReusableCell(withIdentifier: "FavouritesCell", for: indexPath) as! FavouritesTableViewCell
+        cell.FileNameLabel.text = favourites[indexPath.row]
         return cell
     }
-    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        // Return nil to remove the header for each section
-        return nil
+    
+    // MARK: - Helper Function to Update Table View Height
+    func updateTableViewHeight() {
+        let rowHeight: CGFloat = 47.0
+        tableViewHeightConstraint.constant = rowHeight * CGFloat(favourites.count)
+        view.layoutIfNeeded() // Apply changes immediately
     }
-
-    func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
-        // Return nil to remove the footer for each section
-        return nil
-    }
-
-    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        // Return nil to remove the header text (for default header with title)
-        return nil
-    }
-
-    func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
-        // Return nil to remove the footer text (for default footer with title)
-        return nil
-    }
-
     
     // MARK: - Open Document on Cell Tap
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -122,6 +109,7 @@ class HomeViewController: GradientBGViewController, UIDocumentPickerDelegate, UI
     @IBOutlet weak var FavouritesImageView: UIView!
     @IBOutlet weak var AddButtonView: UIView!
     @IBOutlet var tableView: UITableView!
+    @IBOutlet weak var tableViewHeightConstraint: NSLayoutConstraint!
     
     // MARK: - Life Cycle Methods
     override func viewDidLoad() {
@@ -133,6 +121,8 @@ class HomeViewController: GradientBGViewController, UIDocumentPickerDelegate, UI
         setupUI()
         
         loadFiles()
+        
+        updateTableViewHeight() // Adjust table view height after filtering
     }
     
     // MARK: - UI Setup

@@ -1,0 +1,6 @@
+framework module Pods_fyle_fyleUITests {
+  umbrella header "Pods-fyle-fyleUITests-umbrella.h"
+
+  export *
+  module * { export * }
+}
