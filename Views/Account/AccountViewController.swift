@@ -6,13 +6,12 @@
 //
 
 import UIKit
+import FirebaseAuth
 
 class AccountViewController: GradientBGViewController {
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Do any additional setup after loading the view.
     }
     
     @IBAction func logoutButtonTapped(_ sender: UIButton) {
@@ -22,32 +21,46 @@ class AccountViewController: GradientBGViewController {
                                       preferredStyle: .alert)
         
         let continueAction = UIAlertAction(title: "Continue", style: .destructive) { _ in
-            self.goToLoginScreen() // Navigate to the login screen
+            let firebaseAuth = Auth.auth()
+            do {
+                try firebaseAuth.signOut()
+                
+                // Navigate back to the root view controller
+                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                   let window = windowScene.windows.first {
+                    window.rootViewController?.dismiss(animated: true, completion: nil)
+                }
+                
+            } catch let signOutError as NSError {
+                print("Error signing out: %@", signOutError)
+            }
         }
+        
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
-
+        
         alert.addAction(cancelAction)
         alert.addAction(continueAction)
         
         present(alert, animated: true, completion: nil)
     }
-
-    private func goToLoginScreen() {
-        // Clear any logged-in user details from UserDefaults
-        UserDefaults.standard.removeObject(forKey: "currentUserEmail")
-        
-        // Navigate to the login screen
-        guard let loginVC = storyboard?.instantiateViewController(withIdentifier: "LogInViewController") as? LogInViewController else {
-            print("LogInViewController not found in storyboard!")
-            return
-        }
-
-        // Set the login screen as the root view controller
-        let navController = UINavigationController(rootViewController: loginVC)
-        navController.modalPresentationStyle = .fullScreen
-        self.view.window?.rootViewController = navController
-        self.view.window?.makeKeyAndVisible()
-    }
-
 }
+
+//    private func goToLoginScreen() {
+//        // Clear any logged-in user details from UserDefaults
+//        UserDefaults.standard.removeObject(forKey: "currentUserEmail")
+//        
+//        // Navigate to the login screen
+//        guard let loginVC = storyboard?.instantiateViewController(withIdentifier: "LogInViewController") as? LogInViewController else {
+//            print("LogInViewController not found in storyboard!")
+//            return
+//        }
+//
+//        // Set the login screen as the root view controller
+//        let navController = UINavigationController(rootViewController: loginVC)
+//        navController.modalPresentationStyle = .fullScreen
+//        self.view.window?.rootViewController = navController
+//        self.view.window?.makeKeyAndVisible()
+//    }
+//
+//}
 

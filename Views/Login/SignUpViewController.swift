@@ -16,9 +16,12 @@ class SignUpViewController: GradientBGViewController {
     @IBOutlet weak var phoneNumberTextField: UITextField!
     @IBOutlet weak var passwordTextField: UITextField!
     @IBOutlet weak var confirmPasswordTextField: UITextField!
+    @IBOutlet weak var SignUpButton: UIButton!
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        SignUpButton.layer.cornerRadius = 10
     }
     
     // Action for the sign-up button
@@ -43,7 +46,21 @@ class SignUpViewController: GradientBGViewController {
         Auth.auth().createUser(withEmail: email, password: password) { [weak self] authResult, error in
             guard let self = self else { return }
             if let error = error {
-                self.showAlert(message: "Error: \(error.localizedDescription)")
+                // Debug: Print error code
+                print("Firebase error code: \(error._code)")
+                
+                // Handling Firebase error codes more accurately
+                if let errorCode = AuthErrorCode(rawValue: error._code) {
+                    switch errorCode {
+                    case .invalidEmail:
+                        self.showAlert(message: "Please enter a valid email.")
+                    default:
+                        self.showAlert(message: "\(error.localizedDescription)")
+                    }
+                } else {
+                    // Fallback for unknown error codes
+                    self.showAlert(message: "An unknown error occurred. Please try again.")
+                }
                 return
             }
             
@@ -57,7 +74,7 @@ class SignUpViewController: GradientBGViewController {
     
     // Helper to show alerts
     func showAlert(message: String) {
-        let alert = UIAlertController(title: "Sign Up Error", message: message, preferredStyle: .alert)
+        let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
         present(alert, animated: true, completion: nil)
     }
