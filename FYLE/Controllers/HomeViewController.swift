@@ -44,7 +44,10 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         navigationItem.scrollEdgeAppearance = appearance
         
         // Set the title
-        navigationItem.title = " fyle."
+        navigationItem.title = " fyle"
+        
+        //  Set the back button title for the next screen
+        navigationItem.backBarButtonItem = UIBarButtonItem(title: "Back", style: .plain, target: nil, action: nil)
     }
     
     // MARK: - Properties

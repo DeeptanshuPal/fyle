@@ -218,7 +218,8 @@ class CategoriesViewController: UIViewController, UICollectionViewDataSource, UI
         
         // Set document count
         let documentCount = countDocuments(in: category)
-        cell.countLabel.text = "\(documentCount) Files"
+//        cell.countLabel.text = "\(documentCount) Files"
+        cell.countLabel.text = "\(documentCount)"
         
         // Set category color for the filled circle background
         if let colorName = category.categoryColour {
@@ -250,18 +251,18 @@ class CategoriesViewController: UIViewController, UICollectionViewDataSource, UI
         // Force layout to resolve constraints
         cell.layoutIfNeeded()
         
-        //countPillView
-        cell.fileCountPillView.layer.cornerRadius = 13
-        cell.fileCountPillView.layer.shadowColor = UIColor.black.cgColor
-        cell.fileCountPillView.layer.shadowOpacity = 0.3
-        cell.fileCountPillView.layer.shadowOffset = .zero
-        cell.fileCountPillView.layer.shadowRadius = 3.0
-        /// Define the shadow path to match the bounds of the pill view
-        cell.fileCountPillView.layer.shadowPath = UIBezierPath(roundedRect: cell.fileCountPillView.bounds, cornerRadius: 13).cgPath
-        /// Ensure masksToBounds is false to allow the shadow to appear outside
-        cell.fileCountPillView.layer.masksToBounds = false
-        /// If the view's background is transparent, ensure it has a solid background color
-        cell.fileCountPillView.backgroundColor = UIColor.white.withAlphaComponent(0.9)
+//        //countPillView
+//        cell.fileCountPillView.layer.cornerRadius = 13
+//        cell.fileCountPillView.layer.shadowColor = UIColor.black.cgColor
+//        cell.fileCountPillView.layer.shadowOpacity = 0.3
+//        cell.fileCountPillView.layer.shadowOffset = .zero
+//        cell.fileCountPillView.layer.shadowRadius = 3.0
+//        /// Define the shadow path to match the bounds of the pill view
+//        cell.fileCountPillView.layer.shadowPath = UIBezierPath(roundedRect: cell.fileCountPillView.bounds, cornerRadius: 13).cgPath
+//        /// Ensure masksToBounds is false to allow the shadow to appear outside
+//        cell.fileCountPillView.layer.masksToBounds = false
+//        /// If the view's background is transparent, ensure it has a solid background color
+//        cell.fileCountPillView.backgroundColor = UIColor.white.withAlphaComponent(0.9)
         
         //categoryImageView
         cell.categoryColorView.layer.cornerRadius = cell.categoryColorView.layer.frame.width / 2 - 4

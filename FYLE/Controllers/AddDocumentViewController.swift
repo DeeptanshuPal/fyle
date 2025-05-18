@@ -171,7 +171,6 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
         if isEditingExistingDocument || isReadOnly {
             updateUIWithExistingDocument()
         }
-        
         // Keyboard Dismiss Gesture
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         tapGesture.cancelsTouchesInView = false
@@ -181,7 +180,6 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
     @objc private func dismissKeyboard() {
         view.endEditing(true)
     }
-
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)

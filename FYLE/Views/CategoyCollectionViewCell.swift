@@ -12,5 +12,5 @@ class CategoryCollectionViewCell: UICollectionViewCell {
     @IBOutlet weak var countLabel: UILabel!
     @IBOutlet weak var categoryColorView: UIView!
     @IBOutlet weak var categoryImageView: UIImageView!
-    @IBOutlet weak var fileCountPillView: UIView!
+//    @IBOutlet weak var fileCountPillView: UIView!
 }

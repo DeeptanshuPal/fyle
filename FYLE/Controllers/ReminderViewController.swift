@@ -46,7 +46,7 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
         remindersTableView.reloadData()
         
         remindersTableView.setContentOffset(.zero, animated: false)
-        self.navigationController?.navigationBar.tintColor = .white
+        navigationController?.navigationBar.tintColor = .white
         
         let appearance = UINavigationBarAppearance()
         appearance.configureWithTransparentBackground()
@@ -70,12 +70,7 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
         remindersTableView.setContentOffset(.zero, animated: false)
     }
     
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        adjustTableViewFrame()
-    }
-    
-    // MARK: - Set up Bottom Blur
+    // MARK: - Setup Bottom Blur
     private func applyBlurGradient() {
         let blurEffect = UIBlurEffect(style: .light)
         let blurView = UIVisualEffectView(effect: blurEffect)
@@ -126,15 +121,23 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
         tableView.delegate = self
         tableView.backgroundColor = .clear
         
+        // Separator configuration
+        tableView.separatorStyle = .singleLine
+        tableView.separatorInset = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 15)
+        
+        // Enable self-sizing cells with increased estimated height
+        tableView.rowHeight = UITableView.automaticDimension
+        tableView.estimatedRowHeight = 80.0
+        
         // Ensure the table view uses the grouped style for section grouping
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.removeConstraints(tableView.constraints)
         
         NSLayoutConstraint.activate([
+            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 5), // Reduced from 10 to 5
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10)
+            tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -10)
         ])
     }
     
@@ -317,77 +320,77 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
             }
         }
         
-        // Configure cell content
         if isEmptySection {
-            cell.fileNameLabel.text = placeholderText
-            cell.dateLabel.text = ""
-            cell.dateLabel.textColor = .gray
-            cell.accessoryView = nil
-            cell.isUserInteractionEnabled = false
+            cell.configureForEmptyState(placeholderText: placeholderText)
         } else {
             guard let reminder = reminder else { fatalError("Reminder is nil when section is not empty") }
             
-            cell.fileNameLabel.text = reminder.name ?? "Unnamed Document"
+            let fileName = reminder.name ?? "Unnamed Document"
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateStyle = .medium
+            dateFormatter.timeStyle = .none
+            let dateText = reminder.reminderDate.map { dateFormatter.string(from: $0) } ?? "No Date"
             
-            if let reminderDate = reminder.reminderDate {
-                let dateFormatter = DateFormatter()
-                dateFormatter.dateStyle = .medium
-                dateFormatter.timeStyle = .none
-                cell.dateLabel.text = dateFormatter.string(from: reminderDate)
-            } else {
-                cell.dateLabel.text = "No Date"
-            }
-            
+            let dateColor: UIColor
             switch indexPath.section {
-            case 0: cell.dateLabel.textColor = .systemRed
-            case 1: cell.dateLabel.textColor = UIColor(red: 0.85, green: 0.65, blue: 0.0, alpha: 1.0)
-            case 2: cell.dateLabel.textColor = .systemGreen
-            default: cell.dateLabel.textColor = .black
+            case 0: dateColor = UIColor(red: 0.85, green: 0.65, blue: 0.0, alpha: 1.0) // Past Due
+            case 1: dateColor = .systemRed // This Month
+            case 2: dateColor = .systemGreen // Upcoming
+            default: dateColor = .black
             }
             
-            let chevronButton = UIButton(type: .system)
-            chevronButton.setImage(UIImage(systemName: "chevron.right.circle.fill"), for: .normal)
-            chevronButton.tintColor = .systemGray4
-            chevronButton.frame = CGRect(x: 0, y: 0, width: 50, height: 50)
-            chevronButton.imageView?.contentMode = .scaleAspectFit
-            chevronButton.contentHorizontalAlignment = .center
-            chevronButton.contentVerticalAlignment = .center
-            chevronButton.addTarget(self, action: #selector(disclosureTapped(_:)), for: .touchUpInside)
-            
-            cell.accessoryView = chevronButton
-            cell.isUserInteractionEnabled = true
+            cell.configureForNonEmptyState(
+                fileName: fileName,
+                dateText: dateText,
+                dateColor: dateColor,
+                chevronTarget: self,
+                action: #selector(disclosureTapped(_:))
+            )
         }
         
-        // Apply rounded corners to section groups
-        let cornerRadius: CGFloat = 10.0
-        let backgroundView = UIView()
+        // Create a custom background view to handle rounded corners for the entire cell
+        let backgroundView = UIView(frame: cell.bounds)
         backgroundView.backgroundColor = .white
+        backgroundView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        
+        let cornerRadius: CGFloat = 10.0
+        backgroundView.layer.masksToBounds = true
         backgroundView.layer.cornerRadius = cornerRadius
         
-        if sectionCount == 1 {
-            // Single row in section: round all corners
-            backgroundView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
-        } else if indexPath.row == 0 {
-            // First row in section: round top corners
-            backgroundView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
-        } else if indexPath.row == sectionCount - 1 {
-            // Last row in section: round bottom corners
-            backgroundView.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+        if !isEmptySection {
+            if sectionCount == 1 {
+                backgroundView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner,
+                                                      .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+            } else if indexPath.row == 0 {
+                backgroundView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+            } else if indexPath.row == sectionCount - 1 {
+                backgroundView.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+            } else {
+                backgroundView.layer.maskedCorners = []
+            }
         } else {
-            // Middle rows: no rounded corners
-            backgroundView.layer.maskedCorners = []
+            backgroundView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner,
+                                                  .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
         }
         
-        cell.backgroundView = isEmptySection ? nil : backgroundView
-        cell.backgroundColor = .clear
+        // Set the custom background view
+        cell.backgroundView = backgroundView
+        cell.backgroundColor = .clear // Clear the cell's background to let the backgroundView show through
+        cell.contentView.backgroundColor = .clear // Clear contentView background
+        
+        cell.preservesSuperviewLayoutMargins = false
+        cell.separatorInset = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 15)
+        cell.layoutMargins = UIEdgeInsets.zero
         
         return cell
     }
     
     @objc func disclosureTapped(_ sender: UIButton) {
-        guard let cell = sender.superview as? UITableViewCell,
-              let indexPath = remindersTableView.indexPath(for: cell) else {
-            print("Error: Could not determine cell or indexPath from disclosure tap.")
+        print("Chevron tapped")
+        
+        let buttonPosition = sender.convert(sender.bounds.origin, to: remindersTableView)
+        guard let indexPath = remindersTableView.indexPathForRow(at: buttonPosition) else {
+            print("Error: Could not determine indexPath from button position")
             return
         }
         
@@ -408,9 +411,31 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
             }
         }
         
-        guard let document = reminder else { return }
+        guard let document = reminder else {
+            print("Error: No document found")
+            return
+        }
+        
         selectedDocument = document
         presentPDFViewer()
+    }
+    
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        cell.backgroundColor = .clear // Keep the cell background clear
+        cell.contentView.backgroundColor = .clear // Keep contentView background clear
+        cell.separatorInset = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 15)
+        
+        var isEmptySection = false
+        switch indexPath.section {
+        case 0: isEmptySection = isSearching ? filteredPastDueReminders.isEmpty : pastDueReminders.isEmpty
+        case 1: isEmptySection = isSearching ? filteredUpcomingReminders.isEmpty : upcomingReminders.isEmpty
+        case 2: isEmptySection = isSearching ? filteredFutureReminders.isEmpty : futureReminders.isEmpty
+        default: break
+        }
+        
+        if isEmptySection {
+            cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: .greatestFiniteMagnitude)
+        }
     }
     
     // MARK: - UITableViewDelegate
@@ -449,7 +474,6 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
     }
     
     func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
-        // Increase footer height for better spacing between rounded sections
         return 20.0
     }
     
@@ -713,18 +737,5 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
         isSearching = !searchController.searchBar.text!.isEmpty
         categorizeFilteredReminders()
         remindersTableView.reloadData()
-    }
-    
-    // MARK: - Custom Methods
-    private func adjustTableViewFrame() {
-        guard let tableView = remindersTableView else { return }
-        let padding: CGFloat = 16.0
-        let newFrame = CGRect(
-            x: padding,
-            y: tableView.frame.origin.y,
-            width: view.bounds.width - (2 * padding),
-            height: tableView.frame.height
-        )
-        tableView.frame = newFrame
     }
 }
