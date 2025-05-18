@@ -152,11 +152,18 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
         tableView.delegate = self
         tableView.backgroundColor = .clear
         
-        // Disable automatic content inset adjustment to prevent offset issues
-        tableView.contentInsetAdjustmentBehavior = .never
+        tableView.translatesAutoresizingMaskIntoConstraints = false
         
-        // Ensure constraints are respected from storyboard
-        tableView.translatesAutoresizingMaskIntoConstraints = true
+        // Remove any existing constraints from storyboard if needed
+        tableView.removeConstraints(tableView.constraints)
+        
+        // Add constraints relative to the safe area
+        NSLayoutConstraint.activate([
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10) // 10 points below safe area top
+        ])
     }
     
     private func fetchReminders() {
@@ -258,16 +265,16 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if isSearching {
             switch section {
-            case 0: return filteredPastDueReminders.count
-            case 1: return filteredUpcomingReminders.count
-            case 2: return filteredFutureReminders.count
+            case 0: return filteredPastDueReminders.isEmpty ? 1 : filteredPastDueReminders.count
+            case 1: return filteredUpcomingReminders.isEmpty ? 1 : filteredUpcomingReminders.count
+            case 2: return filteredFutureReminders.isEmpty ? 1 : filteredFutureReminders.count
             default: return 0
             }
         } else {
             switch section {
-            case 0: return pastDueReminders.count
-            case 1: return upcomingReminders.count
-            case 2: return futureReminders.count
+            case 0: return pastDueReminders.isEmpty ? 1 : pastDueReminders.count
+            case 1: return upcomingReminders.isEmpty ? 1 : upcomingReminders.count
+            case 2: return futureReminders.isEmpty ? 1 : futureReminders.count
             default: return 0
             }
         }
@@ -276,80 +283,130 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "ReminderCell", for: indexPath) as! RemindersTableViewCell
         
-        let reminder: Document
+        var reminder: Document?
+        var isEmptySection = false
+        var placeholderText = ""
+        
         if isSearching {
             switch indexPath.section {
-            case 0: reminder = filteredPastDueReminders[indexPath.row]
-            case 1: reminder = filteredUpcomingReminders[indexPath.row]
-            case 2: reminder = filteredFutureReminders[indexPath.row]
+            case 0:
+                if filteredPastDueReminders.isEmpty {
+                    isEmptySection = true
+                    placeholderText = "No past due files"
+                } else {
+                    reminder = filteredPastDueReminders[indexPath.row]
+                }
+            case 1:
+                if filteredUpcomingReminders.isEmpty {
+                    isEmptySection = true
+                    placeholderText = "No upcoming files"
+                } else {
+                    reminder = filteredUpcomingReminders[indexPath.row]
+                }
+            case 2:
+                if filteredFutureReminders.isEmpty {
+                    isEmptySection = true
+                    placeholderText = "No future files"
+                } else {
+                    reminder = filteredFutureReminders[indexPath.row]
+                }
             default: fatalError("Unexpected section")
             }
         } else {
             switch indexPath.section {
-            case 0: reminder = pastDueReminders[indexPath.row]
-            case 1: reminder = upcomingReminders[indexPath.row]
-            case 2: reminder = futureReminders[indexPath.row]
+            case 0:
+                if pastDueReminders.isEmpty {
+                    isEmptySection = true
+                    placeholderText = "No past due files"
+                } else {
+                    reminder = pastDueReminders[indexPath.row]
+                }
+            case 1:
+                if upcomingReminders.isEmpty {
+                    isEmptySection = true
+                    placeholderText = "No upcoming files"
+                } else {
+                    reminder = upcomingReminders[indexPath.row]
+                }
+            case 2:
+                if futureReminders.isEmpty {
+                    isEmptySection = true
+                    placeholderText = "No future files"
+                } else {
+                    reminder = futureReminders[indexPath.row]
+                }
             default: fatalError("Unexpected section")
             }
         }
         
-        // Configure cell
-        cell.fileNameLabel.text = reminder.name ?? "Unnamed Document"
-        
-        if let reminderDate = reminder.reminderDate {
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateStyle = .medium // Only date
-            dateFormatter.timeStyle = .none  // No time
-            cell.dateLabel.text = dateFormatter.string(from: reminderDate)
-        } else {
-            cell.dateLabel.text = "No Date"
-        }
-        
-        // Set date label color based on section
-        switch indexPath.section {
-        case 0: cell.dateLabel.textColor = .systemRed
-        case 1: cell.dateLabel.textColor = UIColor(red: 0.85, green: 0.65, blue: 0.0, alpha: 1.0)
-        case 2: cell.dateLabel.textColor = .systemGreen
-        default: cell.dateLabel.textColor = .black
-        }
-        
-        // Set cell background
-        cell.backgroundColor = UIColor.white.withAlphaComponent(0.9)
-        
-        // Customize cell corners based on position in section
-        let sectionRowCount = tableView.numberOfRows(inSection: indexPath.section)
-        let isFirstRow = indexPath.row == 0
-        let isLastRow = indexPath.row == sectionRowCount - 1
-        
-        cell.layer.cornerRadius = 11
-        cell.layer.masksToBounds = true
-        
-        if isFirstRow && isLastRow {
-            // Single row in section: round all corners
+        if isEmptySection {
+            // Configure cell for empty section
+            cell.fileNameLabel.text = placeholderText
+            cell.dateLabel.text = ""
+            cell.dateLabel.textColor = .gray
+            cell.accessoryType = .none // Remove disclosure indicator
+            cell.backgroundColor = UIColor.white.withAlphaComponent(0.9)
+            cell.layer.cornerRadius = 11
             cell.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
-        } else if isFirstRow {
-            // First row: round top corners
-            cell.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
-        } else if isLastRow {
-            // Last row: round bottom corners
-            cell.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+            cell.isUserInteractionEnabled = false // Disable selection
         } else {
-            // Intermediate row: no rounding
-            cell.layer.maskedCorners = []
+            // Configure cell for reminders
+            guard let reminder = reminder else { fatalError("Reminder is nil when section is not empty") }
+            
+            cell.fileNameLabel.text = reminder.name ?? "Unnamed Document"
+            
+            if let reminderDate = reminder.reminderDate {
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateStyle = .medium
+                dateFormatter.timeStyle = .none
+                cell.dateLabel.text = dateFormatter.string(from: reminderDate)
+            } else {
+                cell.dateLabel.text = "No Date"
+            }
+            
+            // Set date label color based on section
+            switch indexPath.section {
+            case 0: cell.dateLabel.textColor = .systemRed
+            case 1: cell.dateLabel.textColor = UIColor(red: 0.85, green: 0.65, blue: 0.0, alpha: 1.0)
+            case 2: cell.dateLabel.textColor = .systemGreen
+            default: cell.dateLabel.textColor = .black
+            }
+            
+            // Set cell background
+            cell.backgroundColor = UIColor.white.withAlphaComponent(0.9)
+            
+            // Customize cell corners based on position in section
+            let sectionRowCount = tableView.numberOfRows(inSection: indexPath.section)
+            let isFirstRow = indexPath.row == 0
+            let isLastRow = indexPath.row == sectionRowCount - 1
+            
+            cell.layer.cornerRadius = 11
+            cell.layer.masksToBounds = true
+            
+            if isFirstRow && isLastRow {
+                cell.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+            } else if isFirstRow {
+                cell.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+            } else if isLastRow {
+                cell.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+            } else {
+                cell.layer.maskedCorners = []
+            }
+            
+            // Add disclosure indicator
+            cell.accessoryType = .disclosureIndicator
+            cell.isUserInteractionEnabled = true
+            
+            // Add shadow
+            cell.layer.masksToBounds = false
+            cell.layer.shadowColor = UIColor.black.cgColor
+            cell.layer.shadowOpacity = 0.3
+            cell.layer.shadowOffset = CGSize(width: 0, height: 2)
+            cell.layer.shadowRadius = 4
+            cell.layer.shadowPath = UIBezierPath(roundedRect: cell.bounds, cornerRadius: 11).cgPath
+            cell.layer.shouldRasterize = true
+            cell.layer.rasterizationScale = UIScreen.main.scale
         }
-        
-        // Add disclosure indicator
-        cell.accessoryType = .disclosureIndicator
-        
-        // Add shadow (optional, matches previous design)
-        cell.layer.masksToBounds = false
-        cell.layer.shadowColor = UIColor.black.cgColor
-        cell.layer.shadowOpacity = 0.3
-        cell.layer.shadowOffset = CGSize(width: 0, height: 2)
-        cell.layer.shadowRadius = 4
-        cell.layer.shadowPath = UIBezierPath(roundedRect: cell.bounds, cornerRadius: 11).cgPath
-        cell.layer.shouldRasterize = true
-        cell.layer.rasterizationScale = UIScreen.main.scale
         
         return cell
     }

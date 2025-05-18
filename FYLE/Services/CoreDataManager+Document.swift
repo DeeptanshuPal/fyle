@@ -6,6 +6,7 @@
 //
 
 import CoreData
+import UserNotifications
 
 extension CoreDataManager {
     // MARK: - Document Operations
@@ -87,4 +88,42 @@ extension CoreDataManager {
         context.delete(document)
         saveContext()
     }
+    
+    func scheduleNotification(for document: Document) {
+            guard let reminderDate = document.reminderDate else { return }
+            guard UserDefaults.standard.bool(forKey: "notificationsEnabled") else { return }
+            guard let reminderDate = document.reminderDate else { return }
+            
+            // Convert reminderDate to user's local time zone
+            let calendar = Calendar.current
+            let localReminderDate = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: reminderDate)
+            
+            // Create notification content
+            let content = UNMutableNotificationContent()
+            content.title = "📅 Document Expiry Reminder"
+            content.body = "\(document.name ?? "Your document") expires on \(document.formattedExpiryDate ?? "soon")!"
+            content.sound = .default
+            
+            // Set the trigger for the notification (1 day before expiry)
+            let triggerDate = calendar.date(byAdding: .day, value: -1, to: reminderDate)!
+            let triggerComponents = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: triggerDate)
+            let trigger = UNCalendarNotificationTrigger(dateMatching: triggerComponents, repeats: false)
+            
+            // Use document's ID as the request identifier
+            let requestID = document.objectID.uriRepresentation().absoluteString
+            let request = UNNotificationRequest(
+                identifier: requestID,
+                content: content,
+                trigger: trigger
+            )
+            
+            // Schedule the notification
+            UNUserNotificationCenter.current().add(request) { error in
+                if let error = error {
+                    print("Failed to schedule notification: \(error)")
+                } else {
+                    print("Scheduled notification for \(document.name ?? "unnamed document")")
+                }
+            }
+        }
 }

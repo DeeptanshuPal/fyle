@@ -274,7 +274,14 @@ class CategoriesViewController: UIViewController, UICollectionViewDataSource, UI
     
     // MARK: - UICollectionViewDelegateFlowLayout
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: 173, height: 67) // Fixed width and height
+        let padding: CGFloat = 20 // Total padding space (adjust as needed)
+        let minimumSpacing: CGFloat = 15 // Space between items
+        let totalSpacing = padding + minimumSpacing // Combined spacing
+        
+        let availableWidth = collectionView.frame.width - totalSpacing + 20
+        let itemWidth = availableWidth / 2 // Divide available space into 2 columns
+        
+        return CGSize(width: itemWidth, height: 67) // Maintain fixed height
     }
     
     // MARK: - Helper Method for Color Mapping

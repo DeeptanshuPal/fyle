@@ -10,7 +10,8 @@ import CoreData
 import PDFKit
 import QuickLook
 
-class FilesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchResultsUpdating, QLPreviewControllerDataSource, QLPreviewControllerDelegate {
+class FilesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchResultsUpdating, QLPreviewControllerDataSource, QLPreviewControllerDelegate, AddDocumentViewControllerDelegate {
+    
     
     // MARK: - IBOutlets
     @IBOutlet weak var filesTableView: UITableView?
@@ -158,7 +159,6 @@ class FilesViewController: UIViewController, UITableViewDataSource, UITableViewD
         filteredDocuments = documents
         filesTableView?.reloadData()
         updateTableViewHeight()
-        print("Fetched \(filteredDocuments.count) documents. Updated height to: \(tableViewHeightConstraint?.constant ?? 0)")
     }
     
     private func updateTableViewHeight() {
@@ -198,6 +198,192 @@ class FilesViewController: UIViewController, UITableViewDataSource, UITableViewD
         tableView.deselectRow(at: indexPath, animated: true)
         selectedDocument = filteredDocuments[indexPath.row]
         presentPDFViewer()
+    }
+    
+    // MARK: - Context Menu for Tap-and-Hold
+    func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
+        let document = filteredDocuments[indexPath.row]
+        
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
+            // "Show Details" action
+            let showDetailsAction = UIAction(title: "Show Details", image: UIImage(systemName: "info.circle")) { [weak self] _ in
+                self?.showDetails(for: document)
+            }
+            
+            // "Mark/Unmark as Favourite" action with dynamic star icon
+            let favoriteAction = UIAction(
+                title: document.isFavorite ? "Unmark as Favourite" : "Mark as Favourite",
+                image: UIImage(systemName: document.isFavorite ? "star.fill" : "star")
+            ) { [weak self] _ in
+                guard let self = self else { return }
+                document.isFavorite.toggle()
+                CoreDataManager.shared.saveContext()
+                self.filesTableView?.reloadData()
+            }
+            
+            // "Delete" action with confirmation
+            let deleteAction = UIAction(title: "Delete", image: UIImage(systemName: "trash"), attributes: .destructive) { [weak self] _ in
+                guard let self = self else { return }
+                self.confirmDelete(document: document, at: indexPath)
+            }
+            
+            // "Send a Copy" action
+            let sendCopyAction = UIAction(title: "Send a Copy", image: UIImage(systemName: "square.and.arrow.up")) { [weak self] _ in
+                guard let self = self else { return }
+                self.shareDocument(document)
+            }
+            
+            return UIMenu(title: "", children: [showDetailsAction, favoriteAction, deleteAction, sendCopyAction])
+        }
+    }
+    
+    // MARK: - Delete Confirmation
+    private func confirmDelete(document: Document, at indexPath: IndexPath) {
+        let alert = UIAlertController(
+            title: "Delete Document",
+            message: "Are you sure you want to delete \"\(document.name ?? "Unnamed Document")\"? This action cannot be undone.",
+            preferredStyle: .alert
+        )
+        
+        let deleteAction = UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
+            guard let self = self else { return }
+            CoreDataManager.shared.deleteDocument(document)
+            self.documents.removeAll { $0 == document }
+            self.filteredDocuments.removeAll { $0 == document }
+            self.filesTableView?.deleteRows(at: [indexPath], with: .automatic)
+            self.updateTableViewHeight()
+        }
+        
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        
+        alert.addAction(deleteAction)
+        alert.addAction(cancelAction)
+        
+        present(alert, animated: true, completion: nil)
+    }
+    
+    // MARK: - Share Document
+    private func shareDocument(_ document: Document) {
+        guard let pdfData = document.pdfData else {
+            showAlert(title: "Error", message: "No PDF data available to share.")
+            return
+        }
+        
+        // Create a temporary file URL
+        let fileName = (document.name ?? "Unnamed Document") + ".pdf"
+        let tempURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(fileName)
+        
+        do {
+            // Write the PDF data to the temporary file
+            try pdfData.write(to: tempURL)
+            
+            // Create the activity view controller with the file URL
+            let activityViewController = UIActivityViewController(activityItems: [tempURL], applicationActivities: nil)
+            
+            // Set the source view and rect for iPad compatibility
+            if let popoverController = activityViewController.popoverPresentationController {
+                popoverController.sourceView = self.view
+                popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
+                popoverController.permittedArrowDirections = []
+            }
+            
+            // Present the sharing sheet
+            present(activityViewController, animated: true) {
+                // Optional: Clean up the temporary file after sharing (though iOS usually handles this)
+                try? FileManager.default.removeItem(at: tempURL)
+            }
+        } catch {
+            showAlert(title: "Error", message: "Failed to prepare document for sharing: \(error.localizedDescription)")
+        }
+    }
+    
+    // MARK: - Show Details Action
+    private func showDetails(for document: Document) {
+        guard let addDocumentVC = storyboard?.instantiateViewController(withIdentifier: "AddDocumentViewController") as? AddDocumentViewController else {
+            print("Error: Could not instantiate AddDocumentViewController from storyboard.")
+            return
+        }
+        
+        // Set the delegate
+        addDocumentVC.delegate = self
+        
+        // Force view loading to connect outlets
+        addDocumentVC.loadViewIfNeeded()
+        
+        // Debug print to check outlet connections
+        print("favoriteSwitch after load: \(String(describing: addDocumentVC.favoriteSwitch))")
+        print("nameTextField after load: \(String(describing: addDocumentVC.nameTextField))")
+        print("summaryTableView after load: \(String(describing: addDocumentVC.summaryTableView))")
+        print("thumbnailImageView after load: \(String(describing: addDocumentVC.thumbnailImageView))")
+        print("categoryButton after load: \(String(describing: addDocumentVC.categoryButton))")
+        print("reminderSwitch after load: \(String(describing: addDocumentVC.reminderSwitch))")
+        print("expiryDatePicker after load: \(String(describing: addDocumentVC.expiryDatePicker))")
+        print("expiryDateLabel after load: \(String(describing: addDocumentVC.expiryDateLabel))")
+        
+        // Set flags to indicate editing an existing document and read-only mode
+        addDocumentVC.isEditingExistingDocument = true
+        addDocumentVC.isReadOnly = true
+        addDocumentVC.existingDocument = document // Pass the document object
+        
+        // Pass the selected document's data to AddDocumentViewController
+        addDocumentVC.selectedImages = loadImagesFromDocument(document)
+        addDocumentVC.summaryData = loadSummaryData(from: document)
+        addDocumentVC.selectedCategories = document.categories?.allObjects as? [Category] ?? []
+        if let favoriteSwitch = addDocumentVC.favoriteSwitch {
+            favoriteSwitch.isOn = document.isFavorite
+        } else {
+            print("Warning: favoriteSwitch is nil, cannot set favorite status.")
+        }
+        addDocumentVC.nameTextField?.text = document.name
+        if let expiryDate = document.expiryDate {
+            addDocumentVC.reminderSwitch?.isOn = true
+            addDocumentVC.expiryDatePicker?.date = expiryDate
+            addDocumentVC.expiryDatePicker?.isHidden = false
+            addDocumentVC.expiryDateLabel?.isHidden = false
+        } else {
+            addDocumentVC.reminderSwitch?.isOn = false
+            addDocumentVC.expiryDatePicker?.isHidden = true
+            addDocumentVC.expiryDateLabel?.isHidden = true
+        }
+        
+        // Manually trigger UI update
+        addDocumentVC.updateUIWithExistingDocument()
+        
+        let navController = UINavigationController(rootViewController: addDocumentVC)
+        present(navController, animated: true, completion: nil)
+    }
+    
+    // Helper to load images from document (assuming images are stored as PDF or need conversion)
+    private func loadImagesFromDocument(_ document: Document) -> [UIImage] {
+        guard let pdfData = document.pdfData, let pdfDocument = PDFDocument(data: pdfData) else {
+            return []
+        }
+        
+        var images: [UIImage] = []
+        for pageIndex in 0..<pdfDocument.pageCount {
+            if let page = pdfDocument.page(at: pageIndex) {
+                let pageBounds = page.bounds(for: .mediaBox)
+                let renderer = UIGraphicsImageRenderer(size: pageBounds.size)
+                let image = renderer.image { context in
+                    UIColor.white.setFill()
+                    context.fill(pageBounds)
+                    context.cgContext.translateBy(x: 0, y: pageBounds.height)
+                    context.cgContext.scaleBy(x: 1.0, y: -1.0)
+                    page.draw(with: .mediaBox, to: context.cgContext)
+                }
+                images.append(image)
+            }
+        }
+        return images
+    }
+    
+    // Helper to load summary data from document
+    private func loadSummaryData(from document: Document) -> [String: String] {
+        guard let summaryData = document.summaryData,
+              let json = try? JSONSerialization.jsonObject(with: summaryData, options: []) as? [String: String] else {
+            return [:]
+        }
+        return json
     }
     
     // MARK: - PDF Viewer
@@ -260,5 +446,12 @@ class FilesViewController: UIViewController, UITableViewDataSource, UITableViewD
         filesTableView?.reloadData()
         updateTableViewHeight()
         print("Search updated. Filtered documents: \(filteredDocuments.count), Height: \(tableViewHeightConstraint?.constant ?? 0)")
+    }
+    
+    // MARK: - AddDocumentViewControllerDelegate
+    func didUpdateDocument() {
+        fetchDocuments() // Refresh the data
+        filesTableView?.reloadData() // Update the table view
+        updateTableViewHeight() // Adjust the table view height
     }
 }

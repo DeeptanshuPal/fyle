@@ -9,6 +9,12 @@ import UIKit
 import CoreData
 import PhotosUI
 import Vision
+import PDFKit
+
+// Delegate protocol for notifying FilesViewController
+protocol AddDocumentViewControllerDelegate: AnyObject {
+    func didUpdateDocument()
+}
 
 // Custom UIImageView subclass for top-aligned, center-horizontal aspect fill with equal left/right cropping
 class TopAlignedAspectFillImageView: UIImageView {
@@ -50,15 +56,15 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
     // MARK: - IBOutlets
     @IBOutlet weak var AddDocumentScrollView: UIScrollView!
     @IBOutlet weak var AddDocumentScrollContentView: UIView!
-    @IBOutlet weak var thumbnailImageView: TopAlignedAspectFillImageView! // Updated to custom class
-    @IBOutlet weak var nameTextField: UITextField!
-    @IBOutlet weak var summaryTableView: UITableView!
-    @IBOutlet weak var categoryButton: UIButton!
-    @IBOutlet weak var reminderSwitch: UISwitch!
-    @IBOutlet weak var expiryDatePicker: UIDatePicker!
-    @IBOutlet weak var expiryDateLabel: UILabel!
+    @IBOutlet weak var thumbnailImageView: TopAlignedAspectFillImageView!
+    @IBOutlet weak var nameTextField: UITextField?
+    @IBOutlet weak var summaryTableView: UITableView?
+    @IBOutlet weak var categoryButton: UIButton?
+    @IBOutlet weak var reminderSwitch: UISwitch?
+    @IBOutlet weak var expiryDatePicker: UIDatePicker?
+    @IBOutlet weak var expiryDateLabel: UILabel?
     @IBOutlet weak var saveButton: UIButton!
-    @IBOutlet weak var favoriteSwitch: UISwitch!
+    @IBOutlet weak var favoriteSwitch: UISwitch?
     
     @IBOutlet weak var SummaryView: UITableView! // Consider removing this redundant outlet
     @IBOutlet weak var CategoryView: UIView!
@@ -70,10 +76,15 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
     
     // MARK: - Properties
     var selectedImages: [UIImage] = []
+    var pdfData: Data? // To store the PDF data directly from the document picker
     var summaryData: [String: String] = [:]
     var selectedCategories: [Category] = []
     private var isFirstImageSet = false
     private var tableViewHeightConstraint: NSLayoutConstraint? // For dynamic summaryTableView height
+    var isEditingExistingDocument = false // Tracks if editing an existing document
+    var isReadOnly = false // Property to indicate read-only mode
+    var existingDocument: Document? // Store the document to update
+    weak var delegate: AddDocumentViewControllerDelegate? // Delegate to notify FilesViewController
     
     // Keywords for auto-categorization
     private let categoryKeywords: [String: [String]] = [
@@ -100,20 +111,34 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
         setupUI()
         setupTableView()
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelTapped))
-        navigationItem.title = "Add Document"
+        navigationItem.title = isReadOnly ? "Document Details" : "Add Document"
         
-        // Set thumbnail from the first selected image
-        if !selectedImages.isEmpty {
+        print("viewDidLoad called, isEditingExistingDocument: \(isEditingExistingDocument), isReadOnly: \(isReadOnly)")
+        
+        // Handle PDF data if provided
+        if let pdfData = pdfData {
+            // Generate a thumbnail from the first page of the PDF
+            if let thumbnail = generateThumbnailFromPDF(data: pdfData) {
+                thumbnailImageView.image = thumbnail
+                isFirstImageSet = true
+            }
+            if !isEditingExistingDocument {
+                processPDFData(pdfData) // Extract details from PDF
+            }
+        } else if !selectedImages.isEmpty {
+            // Set thumbnail and process images only for new document or if images are provided
             thumbnailImageView.image = selectedImages[0]
             isFirstImageSet = true
-            processSelectedImages() // Automatically extract details
+            if !isEditingExistingDocument {
+                processSelectedImages() // Automatically extract details for new document
+            }
         }
         
         // UI Setup
         thumbnailImageView.layer.cornerRadius = 8
         thumbnailImageView.layer.borderWidth = 1
         thumbnailImageView.layer.borderColor = #colorLiteral(red: 0.2549019754, green: 0.2745098174, blue: 0.3019607961, alpha: 0.7967197848)
-        nameTextField.layer.cornerRadius = 50
+        nameTextField?.layer.cornerRadius = 50
         SummaryView.layer.cornerRadius = 8
         SummaryView.layer.borderWidth = 1
         SummaryView.layer.borderColor = #colorLiteral(red: 0.9129191041, green: 0.9114382863, blue: 0.9338697791, alpha: 0.9029387417)
@@ -128,19 +153,36 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
         FavouriteView.layer.borderColor = #colorLiteral(red: 0.9129191041, green: 0.9114382863, blue: 0.9338697791, alpha: 0.9029387417)
         
         // Disable summary table view scroll
-        summaryTableView.isScrollEnabled = false
+        summaryTableView?.isScrollEnabled = false
         
         // Initialize reminder section
-        reminderSwitch.isOn = false
-        expiryDateLabel.isHidden = true
-        expiryDatePicker.isHidden = true
+        reminderSwitch?.isOn = false
+        expiryDateLabel?.isHidden = true
+        expiryDatePicker?.isHidden = true
         updateReminderViewHeight()
+        
+        // Update UI if editing an existing document or in read-only mode
+        if isEditingExistingDocument || isReadOnly {
+            updateUIWithExistingDocument()
+        }
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        print("viewWillAppear called, isEditingExistingDocument: \(isEditingExistingDocument), isReadOnly: \(isReadOnly)")
+        if isReadOnly {
+            // Add Edit button on the top right
+            navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .edit, target: self, action: #selector(editTapped))
+            configureReadOnlyMode()
+        } else {
+            navigationItem.rightBarButtonItem = nil // Remove Edit button if not in read-only mode
+        }
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         // Update the scroll view's content size to fit all content
-        let contentHeight = saveButton.frame.maxY + 20 // Add padding at the bottom
+        let contentHeight = saveButton.isHidden ? (saveButton.frame.minY - 20) : (saveButton.frame.maxY + 20) // Adjust padding based on visibility
         AddDocumentScrollView.contentSize = CGSize(width: AddDocumentScrollView.frame.width, height: contentHeight)
         print("Scroll view content size: \(AddDocumentScrollView.contentSize)")
     }
@@ -148,19 +190,19 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
     // MARK: - Setup Methods
     private func setupUI() {
         thumbnailImageView.clipsToBounds = true
-        expiryDatePicker.minimumDate = Date()
-        expiryDatePicker.isHidden = !reminderSwitch.isOn
+        expiryDatePicker?.minimumDate = Date()
+        expiryDatePicker?.isHidden = !(reminderSwitch?.isOn ?? false)
     }
     
     private func setupTableView() {
-        summaryTableView.dataSource = self
-        summaryTableView.delegate = self
-        summaryTableView.rowHeight = UITableView.automaticDimension
-        summaryTableView.estimatedRowHeight = 80
+        summaryTableView?.dataSource = self
+        summaryTableView?.delegate = self
+        summaryTableView?.rowHeight = UITableView.automaticDimension
+        summaryTableView?.estimatedRowHeight = 80
         
         // Set up dynamic height for summaryTableView
-        summaryTableView.translatesAutoresizingMaskIntoConstraints = false
-        tableViewHeightConstraint = summaryTableView.heightAnchor.constraint(equalToConstant: 0)
+        summaryTableView?.translatesAutoresizingMaskIntoConstraints = false
+        tableViewHeightConstraint = summaryTableView?.heightAnchor.constraint(equalToConstant: 0)
         tableViewHeightConstraint?.isActive = true
         updateTableViewHeight()
     }
@@ -169,21 +211,23 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
         let rowHeight: CGFloat = 51.5
         let totalHeight = (CGFloat(summaryData.count) * rowHeight) + 40
         tableViewHeightConstraint?.constant = totalHeight
-        summaryTableView.layoutIfNeeded()
+        summaryTableView?.reloadData() // Ensure table view refreshes
+        summaryTableView?.layoutIfNeeded()
         print("Updated summaryTableView height to: \(totalHeight)")
     }
     
     // MARK: - Actions
-    @IBAction func reminderSwitchToggled(_ sender: UISwitch) {
-        let isOn = sender.isOn
+    @IBAction func reminderSwitchToggled(_ sender: UISwitch?) {
+        guard !isReadOnly else { return } // Prevent toggling in read-only mode
+        let isOn = sender?.isOn ?? false
         
         // Animate the height change and visibility
         UIView.animate(withDuration: 0.3, animations: {
             // Update visibility and alpha for fade effect
-            self.expiryDatePicker.isHidden = !isOn
-            self.expiryDateLabel.isHidden = !isOn
-            self.expiryDatePicker.alpha = isOn ? 1.0 : 0.0
-            self.expiryDateLabel.alpha = isOn ? 1.0 : 0.0
+            self.expiryDatePicker?.isHidden = !isOn
+            self.expiryDateLabel?.isHidden = !isOn
+            self.expiryDatePicker?.alpha = isOn ? 1.0 : 0.0
+            self.expiryDateLabel?.alpha = isOn ? 1.0 : 0.0
             
             // Update height
             self.updateReminderViewHeight()
@@ -194,9 +238,75 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
     }
     
     private func updateReminderViewHeight() {
-        let newHeight: CGFloat = reminderSwitch.isOn ? 107.0 : 50.0 // Fixed heights as specified
+        let newHeight: CGFloat = (reminderSwitch?.isOn ?? false) ? 107.0 : 50.0 // Fixed heights as specified
         reminderViewHeightConstraint?.constant = newHeight
         print("Updated ReminderView height to: \(newHeight)")
+    }
+    
+    @objc func editTapped() {
+        print("Edit button tapped")
+        isReadOnly = false
+        navigationItem.title = "Edit Document"
+        navigationItem.rightBarButtonItem = nil // Remove Edit button
+        configureEditableMode()
+    }
+    
+    private func configureEditableMode() {
+        print("Configuring editable mode")
+        
+        // Enable text fields
+        if let nameTextField = nameTextField {
+            nameTextField.isEnabled = true
+            nameTextField.isUserInteractionEnabled = true
+        } else {
+            print("Warning: nameTextField is nil")
+        }
+        
+        // Enable switches
+        if let reminderSwitch = reminderSwitch {
+            reminderSwitch.isEnabled = true
+            reminderSwitch.isUserInteractionEnabled = true
+        } else {
+            print("Warning: reminderSwitch is nil")
+        }
+        
+        if let favoriteSwitch = favoriteSwitch {
+            favoriteSwitch.isEnabled = true
+            favoriteSwitch.isUserInteractionEnabled = true
+        } else {
+            print("Warning: favoriteSwitch is nil")
+        }
+        
+        // Enable category button
+        if let categoryButton = categoryButton {
+            categoryButton.isEnabled = true
+            categoryButton.isUserInteractionEnabled = true
+        } else {
+            print("Warning: categoryButton is nil")
+        }
+        
+        // Enable expiry date picker
+        if let expiryDatePicker = expiryDatePicker {
+            expiryDatePicker.isUserInteractionEnabled = true
+        } else {
+            print("Warning: expiryDatePicker is nil")
+        }
+        
+        // Show save button and adjust layout
+        if let saveButton = saveButton {
+            saveButton.isHidden = false
+            // Restore the height constraint
+            if let heightConstraint = saveButton.constraints.first(where: { $0.firstAttribute == .height }) {
+                heightConstraint.constant = 44 // Adjust to your button's default height
+            }
+            view.setNeedsLayout()
+            view.layoutIfNeeded()
+        } else {
+            print("Warning: saveButton is nil")
+        }
+        
+        // Enable summary table view cells
+        summaryTableView?.reloadData() // This will reconfigure cells to be editable
     }
     
     // MARK: - Automatic Document Processing
@@ -225,28 +335,101 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
             guard let self else { return }
             
             // 1. Extract Document Name
-            self.nameTextField.text = self.extractDocumentName(from: extractedText)
+            self.nameTextField?.text = self.extractDocumentName(from: extractedText)
             
             // 2. Extract Summary
             self.summaryData = self.extractKeyValuePairs(from: extractedText)
             
             // 3. Determine Category
             self.selectedCategories = [self.detectCategory(from: extractedText)]
-            self.categoryButton.setTitle(self.selectedCategories.first?.name ?? "Select Category", for: .normal)
+            self.categoryButton?.setTitle(self.selectedCategories.first?.name ?? "Select Category", for: .normal)
             
             // 4. Set Expiry & Reminder
             self.setExpiryAndReminder(from: extractedText)
             
-            self.summaryTableView.reloadData()
+            self.summaryTableView?.reloadData()
             self.updateTableViewHeight() // Update table view height after reloading data
             self.updateReminderViewHeight() // Ensure reminder view height is updated
             completion()
         }
     }
     
+    // MARK: - PDF Processing
+    private func processPDFData(_ pdfData: Data) {
+        guard let pdfDocument = PDFDocument(data: pdfData) else { return }
+        var extractedText = ""
+        
+        for pageNum in 0..<pdfDocument.pageCount {
+            if let page = pdfDocument.page(at: pageNum) {
+                extractedText += page.string ?? ""
+            }
+        }
+        
+        nameTextField?.text = extractDocumentName(from: extractedText)
+        summaryData = extractKeyValuePairs(from: extractedText)
+        selectedCategories = [detectCategory(from: extractedText)]
+        categoryButton?.setTitle(selectedCategories.first?.name ?? "Select Category", for: .normal)
+        setExpiryAndReminder(from: extractedText)
+        
+        summaryTableView?.reloadData()
+        updateTableViewHeight()
+        updateReminderViewHeight()
+    }
+    
+    // Generate thumbnail from PDF
+    private func generateThumbnailFromPDF(data: Data) -> UIImage? {
+        guard let pdfDocument = CGPDFDocument(CGDataProvider(data: data as CFData)!) else { return nil }
+        guard let page = pdfDocument.page(at: 1) else { return nil } // Page numbers are 1-based
+        
+        let pageRect = page.getBoxRect(.mediaBox) // Use getBoxRect to get the page's bounding box
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: 612, height: 792)) // Standard PDF page size
+        let thumbnail = renderer.image { ctx in
+            UIColor.white.setFill()
+            ctx.fill(pageRect)
+            ctx.cgContext.translateBy(x: 0, y: pageRect.height)
+            ctx.cgContext.scaleBy(x: 1.0, y: -1.0)
+            ctx.cgContext.drawPDFPage(page)
+        }
+        return thumbnail
+    }
+    
+    func updateUIWithExistingDocument() {
+        print("Updating UI with existing document, selectedImages count: \(selectedImages.count), summaryData: \(summaryData)")
+        
+        // Set thumbnail
+        if !selectedImages.isEmpty {
+            thumbnailImageView.image = selectedImages[0]
+        }
+        
+        // Update summary table
+        summaryTableView?.reloadData()
+        updateTableViewHeight()
+        
+        // Update category
+        categoryButton?.setTitle(selectedCategories.first?.name ?? "Select Category", for: .normal)
+        
+        // Update reminder and expiry date
+        if let expiryDate = expiryDatePicker?.date, reminderSwitch?.isOn == true {
+            expiryDatePicker?.date = expiryDate
+            expiryDatePicker?.isHidden = false
+            expiryDateLabel?.isHidden = false
+            UIView.animate(withDuration: 0.3) {
+                self.expiryDatePicker?.alpha = 1.0
+                self.expiryDateLabel?.alpha = 1.0
+                self.updateReminderViewHeight()
+                self.view.layoutIfNeeded()
+            }
+        } else {
+            reminderSwitch?.isOn = false
+            expiryDatePicker?.isHidden = true
+            expiryDateLabel?.isHidden = true
+            updateReminderViewHeight()
+        }
+    }
+    
     private func updateUIWithExtractedData() {
-        summaryTableView.reloadData()
-        categoryButton.setTitle(selectedCategories.first?.name ?? "Select Category", for: .normal)
+        summaryTableView?.reloadData()
+        categoryButton?.setTitle(selectedCategories.first?.name ?? "Select Category", for: .normal)
         updateTableViewHeight() // Ensure height updates after UI changes
         updateReminderViewHeight() // Ensure reminder view height is updated
     }
@@ -300,14 +483,14 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
         // Set reminder 1 month before expiry
         let reminderDate = Calendar.current.date(byAdding: .month, value: -1, to: expiryDate)!
         
-        expiryDatePicker.date = expiryDate
-        reminderSwitch.isOn = true
-        expiryDatePicker.isHidden = false
-        expiryDateLabel.isHidden = false
+        expiryDatePicker?.date = expiryDate
+        reminderSwitch?.isOn = true
+        expiryDatePicker?.isHidden = false
+        expiryDateLabel?.isHidden = false
         // Animate the transition since this changes the state
         UIView.animate(withDuration: 0.3, animations: {
-            self.expiryDatePicker.alpha = 1.0
-            self.expiryDateLabel.alpha = 1.0
+            self.expiryDatePicker?.alpha = 1.0
+            self.expiryDateLabel?.alpha = 1.0
             self.updateReminderViewHeight()
             self.view.layoutIfNeeded()
         })
@@ -348,42 +531,75 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
     
     // MARK: - Save Document
     @IBAction func saveTapped(_ sender: UIButton) {
-        guard validateInputs() else { return }
+        guard !isReadOnly, validateInputs() else { return }
         
-        let pdfData = createPDFFromImages()
+        let pdfDataToSave = pdfData ?? createPDFFromImages() // Use provided PDF data if available, otherwise create from images
         let thumbnailData = thumbnailImageView.image?.jpegData(compressionQuality: 0.7)
         let summaryJSON = try? JSONSerialization.data(withJSONObject: summaryData)
         
-        let document = CoreDataManager.shared.createDocument(
-            name: nameTextField.text!,
-            summaryData: summaryJSON,
-            expiryDate: reminderSwitch.isOn ? expiryDatePicker.date : nil,
-            thumbnailData: thumbnailData,
-            pdfData: pdfData,
-            reminderDate: reminderSwitch.isOn ? expiryDatePicker.date : nil,
-            isFavorite: favoriteSwitch.isOn,
-            categories: NSSet(array: selectedCategories),
-            sharedWith: nil
-        )
+        print("Saving document with summaryData: \(summaryData)")
         
-        CoreDataManager.shared.saveContext()
-        dismiss(animated: true) { [weak self] in
-            self?.showSuccessMessage()
+        if isEditingExistingDocument, let document = existingDocument {
+            // Update existing document
+            document.name = nameTextField?.text ?? ""
+            document.summaryData = summaryJSON
+            document.expiryDate = reminderSwitch?.isOn == true ? expiryDatePicker?.date : nil
+            document.thumbnail = thumbnailData
+            document.pdfData = pdfDataToSave
+            document.reminderDate = reminderSwitch?.isOn == true ? expiryDatePicker?.date : nil
+            document.isFavorite = favoriteSwitch?.isOn ?? false
+            document.categories = NSSet(array: selectedCategories)
+            
+            CoreDataManager.shared.saveContext()
+            print("Updated existing document: \(document.name ?? "Unnamed")")
+            
+            // Notify delegate before dismissal
+            delegate?.didUpdateDocument()
+        } else {
+            // Create new document
+            let document = CoreDataManager.shared.createDocument(
+                name: nameTextField?.text ?? "",
+                summaryData: summaryJSON,
+                expiryDate: reminderSwitch?.isOn == true ? expiryDatePicker?.date : nil,
+                thumbnailData: thumbnailData,
+                pdfData: pdfDataToSave,
+                reminderDate: reminderSwitch?.isOn == true ? expiryDatePicker?.date : nil,
+                isFavorite: favoriteSwitch?.isOn ?? false,
+                categories: NSSet(array: selectedCategories),
+                sharedWith: nil
+            )
+            
+            CoreDataManager.shared.saveContext()
+            print("Created new document: \(document.name ?? "Unnamed")")
+            
+            // Notify delegate before dismissal (if applicable for new documents)
+            delegate?.didUpdateDocument()
+        }
+        
+        // Dismiss the navigation controller and show success notification
+        if let navController = self.navigationController {
+            navController.dismiss(animated: true) {
+                self.showSuccessNotification()
+            }
+        } else {
+            dismiss(animated: true) {
+                self.showSuccessNotification()
+            }
         }
     }
     
     private func validateInputs() -> Bool {
-        guard let name = nameTextField.text, !name.isEmpty else {
+        guard let name = nameTextField?.text, !name.isEmpty else {
             showAlert(title: "Missing Name", message: "Please enter a document name")
             return false
         }
         
-        guard !selectedImages.isEmpty else {
-            showAlert(title: "No Images", message: "Please select at least one image")
+        guard !selectedImages.isEmpty || pdfData != nil else {
+            showAlert(title: "No Content", message: "Please select at least one image or a PDF")
             return false
         }
         
-        if reminderSwitch.isOn && expiryDatePicker.date < Date() {
+        if (reminderSwitch?.isOn ?? false) && (expiryDatePicker?.date ?? Date()) < Date() {
             showAlert(title: "Invalid Date", message: "Expiry date must be in the future")
             return false
         }
@@ -414,16 +630,74 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
         present(alert, animated: true)
     }
     
-    private func showSuccessMessage() {
-        if let homeVC = presentingViewController as? HomeViewController {
-            let alert = UIAlertController(title: "Success", message: "Document saved successfully!", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            homeVC.present(alert, animated: true)
+    private func showSuccessNotification() {
+        print("Attempting to show success notification")
+        
+        // Find the root view controller (likely HomeViewController)
+        var targetViewController: UIViewController? = presentingViewController
+        while let navController = targetViewController as? UINavigationController {
+            targetViewController = navController.viewControllers.first
+        }
+        
+        // If presentingViewController is nil (after dismissal), find the root view controller via the window
+        if targetViewController == nil, let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let rootVC = windowScene.windows.first?.rootViewController {
+            targetViewController = rootVC
+        }
+        
+        guard let targetVC = targetViewController else {
+            print("No valid view controller found to present the notification")
+            return
+        }
+        
+        // Get the safe area top inset to position the notification below the Dynamic Island/status bar
+        let safeAreaTopInset = targetVC.view.safeAreaInsets.top
+        let notificationHeight: CGFloat = 60
+        let startYPosition = -notificationHeight // Start off-screen
+        let finalYPosition = safeAreaTopInset // Position just below the safe area
+        
+        // Create the notification view
+        let notificationView = UIView(frame: CGRect(x: 0, y: startYPosition, width: targetVC.view.bounds.width, height: notificationHeight))
+        notificationView.backgroundColor = #colorLiteral(red: 0.09803921569, green: 0.7764705882, blue: 0.3450980392, alpha: 0.804816846)
+        
+        // Add checkmark image
+        let checkmarkImage = UIImage(systemName: "checkmark.circle")?.withTintColor(.white, renderingMode: .alwaysOriginal)
+        let checkmarkView = UIImageView(image: checkmarkImage)
+        checkmarkView.frame = CGRect(x: 10, y: 10, width: 40, height: 40)
+        notificationView.addSubview(checkmarkView)
+        
+        // Add message label
+        let messageLabel = UILabel(frame: CGRect(x: 60, y: 10, width: notificationView.bounds.width - 70, height: 40))
+        messageLabel.text = isEditingExistingDocument ? "File updated successfully!" : "File added successfully!"
+        messageLabel.textColor = .white
+        messageLabel.font = .systemFont(ofSize: 18, weight: .semibold)
+        notificationView.addSubview(messageLabel)
+        
+        // Add notification view to the target view controller's view
+        targetVC.view.addSubview(notificationView)
+        
+        // Animate the notification to slide in
+        UIView.animate(withDuration: 0.3, animations: {
+            notificationView.frame.origin.y = finalYPosition // Slide down to just below the safe area
+        }) { _ in
+            // Schedule the fade out and removal after 4 seconds
+            DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
+                UIView.animate(withDuration: 0.3, animations: {
+                    notificationView.alpha = 0
+                    notificationView.frame.origin.y = startYPosition // Slide back up
+                }) { _ in
+                    notificationView.removeFromSuperview()
+                }
+            }
         }
     }
     
     @objc func cancelTapped() {
-        dismiss(animated: true)
+        if let navController = self.navigationController {
+            navController.dismiss(animated: true)
+        } else {
+            dismiss(animated: true)
+        }
     }
     
     // MARK: - TableView DataSource & Delegate
@@ -442,6 +716,13 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
             cell.ColonLabel.text = ":"
             cell.KeyTextField.text = key
             cell.ValueTextField.text = summaryData[key]
+            if isReadOnly {
+                cell.KeyTextField.isEnabled = false
+                cell.ValueTextField.isEnabled = false
+            } else {
+                cell.KeyTextField.isEnabled = true
+                cell.ValueTextField.isEnabled = true
+            }
         }
         
         return cell
@@ -449,31 +730,95 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
     
     // MARK: - KeyValueCellDelegate
     func didUpdateKeyValue(key: String?, value: String?, at index: Int) {
+        guard !isReadOnly else { return } // Prevent updates in read-only mode
         guard let key = key, !key.isEmpty, let value = value, !value.isEmpty else { return }
         if index < summaryData.count {
             let oldKey = Array(summaryData.keys)[index]
             summaryData.removeValue(forKey: oldKey)
         }
         summaryData[key] = value
-        summaryTableView.reloadData()
+        summaryTableView?.reloadData()
         updateTableViewHeight() // Update height after modifying summaryData
     }
     
     // MARK: - Category Selection
-    @IBAction func selectCategoryTapped(_ sender: UIButton) {
+    @IBAction func selectCategoryTapped(_ sender: UIButton?) {
+        guard !isReadOnly else { return } // Prevent category selection in read-only mode
         let categories = CoreDataManager.shared.fetchCategories()
         let categoryVC = CategorySelectionViewController(categories: categories, selectedCategories: selectedCategories)
         categoryVC.delegate = self
         let navController = UINavigationController(rootViewController: categoryVC)
         present(navController, animated: true)
     }
+    
+    // MARK: - Read-Only Mode Configuration
+    private func configureReadOnlyMode() {
+        print("Configuring read-only mode, isReadOnly: \(isReadOnly)")
+        
+        // Disable text fields
+        if let nameTextField = nameTextField {
+            nameTextField.isEnabled = false
+            nameTextField.isUserInteractionEnabled = false
+        } else {
+            print("Warning: nameTextField is nil")
+        }
+        
+        // Disable switches
+        if let reminderSwitch = reminderSwitch {
+            reminderSwitch.isEnabled = false
+            reminderSwitch.isUserInteractionEnabled = false
+        } else {
+            print("Warning: reminderSwitch is nil")
+        }
+        
+        if let favoriteSwitch = favoriteSwitch {
+            favoriteSwitch.isEnabled = false
+            favoriteSwitch.isUserInteractionEnabled = false
+        } else {
+            print("Warning: favoriteSwitch is nil")
+        }
+        
+        // Disable category button
+        if let categoryButton = categoryButton {
+            categoryButton.isEnabled = false
+            categoryButton.isUserInteractionEnabled = false
+        } else {
+            print("Warning: categoryButton is nil")
+        }
+        
+        // Disable expiry date picker
+        if let expiryDatePicker = expiryDatePicker {
+            expiryDatePicker.isUserInteractionEnabled = false
+        } else {
+            print("Warning: expiryDatePicker is nil")
+        }
+        
+        // Hide save button and adjust layout
+        if let saveButton = saveButton {
+            saveButton.isHidden = true
+            // Find or create a height constraint to collapse the button
+            if let heightConstraint = saveButton.constraints.first(where: { $0.firstAttribute == .height }) {
+                heightConstraint.constant = 0
+            } else {
+                saveButton.addConstraint(NSLayoutConstraint(item: saveButton, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: 0))
+            }
+            view.setNeedsLayout()
+            view.layoutIfNeeded()
+        } else {
+            print("Warning: saveButton is nil")
+        }
+        
+        // Reload table view to disable cells
+        summaryTableView?.reloadData()
+    }
 }
 
 // MARK: - CategorySelectionDelegate
 extension AddDocumentViewController: CategorySelectionDelegate {
     func didSelectCategories(_ categories: [Category]) {
+        guard !isReadOnly else { return } // Prevent category updates in read-only mode
         selectedCategories = categories
         let categoryNames = categories.compactMap { $0.name }.joined(separator: ", ")
-        categoryButton.setTitle(categoryNames.isEmpty ? "Select Categories" : categoryNames, for: .normal)
+        categoryButton?.setTitle(categoryNames.isEmpty ? "Select Categories" : categoryNames, for: .normal)
     }
 }

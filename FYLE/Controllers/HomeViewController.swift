@@ -10,6 +10,7 @@ import UIKit
 import CoreData
 import PhotosUI
 import QuickLook
+import VisionKit // Added for document scanning
 
 class HomeViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UITableViewDataSource, UITableViewDelegate, QLPreviewControllerDataSource, QLPreviewControllerDelegate {
     
@@ -19,6 +20,29 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
     @IBOutlet weak var favouritesImageBGView: UIView!
     
     @IBOutlet weak var addButton: UIButton!
+    @IBOutlet weak var profileButton: UIBarButtonItem!
+    
+    // MARK: - Setup Navigation Bar Appearance
+    private func configureNavigationBar() {
+        // Ensure large titles are enabled
+        navigationController?.navigationBar.prefersLargeTitles = true
+        
+        // Create and configure a custom appearance
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithTransparentBackground()
+        appearance.largeTitleTextAttributes = [
+            .foregroundColor: UIColor(red: 238/255, green: 249/255, blue: 255/255, alpha: 1.0), // #EEF9FF
+            .font: UIFont.systemFont(ofSize: 52, weight: .heavy)
+        ]
+        
+        
+        // Apply the appearance to the navigation bar
+        navigationItem.standardAppearance = appearance
+        navigationItem.scrollEdgeAppearance = appearance
+        
+        // Set the title
+        navigationItem.title = " fyle."
+    }
     
     // MARK: - Properties
     private var selectedDocument: Document? // To store the selected document for preview
@@ -31,12 +55,8 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         setupGradientBackground()
         applyBlurGradient()
         
-        // Nav bar title
-        let username = UserDefaults.standard.string(forKey: "username") ?? "User"
-        title = "Hi \(username)"
-        navigationController?.navigationBar.titleTextAttributes = [
-            .foregroundColor: UIColor(red: 238/255, green: 249/255, blue: 255/255, alpha: 1.0) // #EEF9FF
-        ]
+        // initial nav bar setup
+        configureNavigationBar()
         
         // Populate categories only if not already done
         if !UserDefaults.standard.bool(forKey: "categoriesPopulated") {
@@ -62,6 +82,8 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         addButton.layer.shadowOffset = .zero
         addButton.layer.shadowRadius = 5.0
         addButton.layer.masksToBounds = false
+        
+        profileButton.isHidden = true // hide profile button (temporarily for review)
     }
     
     @IBAction func profileTapped(_ sender: Any) {
@@ -235,6 +257,13 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
                 navigationController?.pushViewController(remindersVC, animated: true)
             }
         }
+        
+        else if tile.title == "Shared" { // Add navigation for Reminders tile
+            let storyboard = UIStoryboard(name: "Main", bundle: nil)
+            if let sharedVC = storyboard.instantiateViewController(withIdentifier: "sharedVC") as? sharedVC {
+                navigationController?.pushViewController(sharedVC, animated: true)
+            }
+        }
     }
     
     // MARK: Favourites TableView
@@ -252,6 +281,11 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
     // Add viewWillAppear to refresh data and update height
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        
+        // Reapply navigation bar configuration
+        configureNavigationBar()
+        
+        // Refresh data
         tileCollectionView.reloadData()
         favouritesTableView.reloadData()
         updateTableViewHeight() // Update height after reloading data
@@ -341,6 +375,26 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         present(picker, animated: true)
     }
     
+    // MARK: - Document Picker
+    private func presentDocumentPicker() {
+        let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: [.pdf], asCopy: true)
+        documentPicker.delegate = self
+        documentPicker.allowsMultipleSelection = false // Set to true if you want to allow multiple PDFs
+        present(documentPicker, animated: true)
+    }
+    
+    // MARK: - Document Scanner
+    private func presentDocumentScanner() {
+        guard VNDocumentCameraViewController.isSupported else {
+            showAlert(title: "Error", message: "Document scanning is not supported on this device.")
+            return
+        }
+        
+        let scanner = VNDocumentCameraViewController()
+        scanner.delegate = self
+        present(scanner, animated: true)
+    }
+    
     // MARK: - Transition to AddDocumentViewController
     private func presentAddDocumentViewController(with images: [UIImage]) {
         // Instantiate AddDocumentViewController from storyboard
@@ -355,14 +409,26 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         }
     }
     
+    // MARK: - Transition to AddDocumentViewController with PDF
+    private func presentAddDocumentViewController(with pdfData: Data) {
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        if let addVC = storyboard.instantiateViewController(withIdentifier: "AddDocumentViewController") as? AddDocumentViewController {
+            // Pass the PDF data instead of images
+            addVC.pdfData = pdfData
+            let navController = UINavigationController(rootViewController: addVC)
+            navController.modalPresentationStyle = .fullScreen
+            present(navController, animated: true)
+        }
+    }
+    
     // MARK: - Add Button Action
     @IBAction func addButtonTapped(_ sender: UIButton) {
         // Create action sheet with three options
-        let alert = UIAlertController(title: "Add Document", message: nil, preferredStyle: .actionSheet)
+        let alert = UIAlertController(title: "Upload a Document", message: nil, preferredStyle: .actionSheet)
         
-        // Option 1: Scan and Upload (placeholder for future implementation)
+        // Option 1: Scan and Upload
         alert.addAction(UIAlertAction(title: "Scan and Upload", style: .default, handler: { _ in
-            print("Scan and Upload selected - to be implemented later")
+            self.presentDocumentScanner()
         }))
         
         // Option 2: Upload from Gallery
@@ -370,9 +436,9 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             self.presentPhotoPicker()
         }))
         
-        // Option 3: Upload PDF (placeholder for future implementation)
-        alert.addAction(UIAlertAction(title: "Upload PDF", style: .default, handler: { _ in
-            print("Upload PDF selected - to be implemented later")
+        // Option 3: Upload PDF
+        alert.addAction(UIAlertAction(title: "Upload from Files", style: .default, handler: { _ in
+            self.presentDocumentPicker()
         }))
         
         // Cancel option
@@ -411,6 +477,70 @@ extension HomeViewController: PHPickerViewControllerDelegate {
             } else {
                 print("No images were selected")
             }
+        }
+    }
+}
+
+// MARK: - UIDocumentPickerDelegate
+extension HomeViewController: UIDocumentPickerDelegate {
+    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+        guard let url = urls.first else { return }
+        
+        do {
+            // Access the file securely
+            let shouldStopAccessing = url.startAccessingSecurityScopedResource()
+            defer {
+                if shouldStopAccessing {
+                    url.stopAccessingSecurityScopedResource()
+                }
+            }
+            
+            // Read the PDF data
+            let pdfData = try Data(contentsOf: url)
+            
+            // Dismiss the picker and present AddDocumentViewController
+            controller.dismiss(animated: true) {
+                self.presentAddDocumentViewController(with: pdfData)
+            }
+        } catch {
+            print("Error loading PDF: \(error)")
+            showAlert(title: "Error", message: "Failed to load the selected PDF.")
+        }
+    }
+    
+    func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
+        controller.dismiss(animated: true)
+    }
+}
+
+// MARK: - VNDocumentCameraViewControllerDelegate
+extension HomeViewController: VNDocumentCameraViewControllerDelegate {
+    func documentCameraViewController(_ controller: VNDocumentCameraViewController, didFinishWith scan: VNDocumentCameraScan) {
+        // Dismiss the scanner
+        controller.dismiss(animated: true)
+        
+        // Convert scanned pages to UIImages
+        var scannedImages: [UIImage] = []
+        for pageIndex in 0..<scan.pageCount {
+            let image = scan.imageOfPage(at: pageIndex)
+            scannedImages.append(image)
+        }
+        
+        // Proceed only if images were scanned
+        if !scannedImages.isEmpty {
+            presentAddDocumentViewController(with: scannedImages)
+        } else {
+            print("No pages were scanned")
+        }
+    }
+    
+    func documentCameraViewControllerDidCancel(_ controller: VNDocumentCameraViewController) {
+        controller.dismiss(animated: true)
+    }
+    
+    func documentCameraViewController(_ controller: VNDocumentCameraViewController, didFailWithError error: Error) {
+        controller.dismiss(animated: true) {
+            self.showAlert(title: "Scanning Error", message: error.localizedDescription)
         }
     }
 }
