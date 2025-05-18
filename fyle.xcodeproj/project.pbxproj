@@ -7,129 +7,75 @@
 	objects = {
 
 /* Begin PBXContainerItemProxy section */
-		37D861C72CCF8144002D85AA /* PBXContainerItemProxy */ = {
+		FF0E41C22D70FE45006F52CE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 37D861A82CCF8143002D85AA /* Project object */;
+			containerPortal = FF0E41A32D70FE43006F52CE /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 37D861AF2CCF8143002D85AA;
-			remoteInfo = fyle;
+			remoteGlobalIDString = FF0E41AA2D70FE43006F52CE;
+			remoteInfo = FYLE;
 		};
-		37D861D12CCF8144002D85AA /* PBXContainerItemProxy */ = {
+		FF0E41CC2D70FE45006F52CE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 37D861A82CCF8143002D85AA /* Project object */;
+			containerPortal = FF0E41A32D70FE43006F52CE /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = 37D861AF2CCF8143002D85AA;
-			remoteInfo = fyle;
+			remoteGlobalIDString = FF0E41AA2D70FE43006F52CE;
+			remoteInfo = FYLE;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		37D861B02CCF8143002D85AA /* fyle.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = fyle.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		37D861C62CCF8144002D85AA /* fyleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = fyleTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		37D861D02CCF8144002D85AA /* fyleUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = fyleUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FF0E41AB2D70FE43006F52CE /* FYLE.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FYLE.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		FF0E41C12D70FE45006F52CE /* FYLETests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FYLETests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FF0E41CB2D70FE45006F52CE /* FYLEUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FYLEUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		314055142CE9F545000C6901 /* Exceptions for "Resources" folder in "fyle" target */ = {
+		FF0E41D32D70FE45006F52CE /* Exceptions for "FYLE" folder in "FYLE" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = 37D861AF2CCF8143002D85AA /* fyle */;
-		};
-		3140551E2CE9F580000C6901 /* Exceptions for "Tests" folder in "fyle" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				fyleTests/fyleTests.swift,
-				fyleUITests/fyleUITests.swift,
-				fyleUITests/fyleUITestsLaunchTests.swift,
-			);
-			target = 37D861AF2CCF8143002D85AA /* fyle */;
-		};
-		3140551F2CE9F580000C6901 /* Exceptions for "Tests" folder in "fyleTests" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				fyleTests/fyleTests.swift,
-			);
-			target = 37D861C52CCF8144002D85AA /* fyleTests */;
-		};
-		314055202CE9F580000C6901 /* Exceptions for "Tests" folder in "fyleUITests" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				fyleUITests/fyleUITests.swift,
-				fyleUITests/fyleUITestsLaunchTests.swift,
-			);
-			target = 37D861CF2CCF8144002D85AA /* fyleUITests */;
+			target = FF0E41AA2D70FE43006F52CE /* FYLE */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		314054F02CE9F302000C6901 /* Models */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Models;
-			sourceTree = "<group>";
-		};
-		314054FD2CE9F3C2000C6901 /* Services */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Services;
-			sourceTree = "<group>";
-		};
-		314055092CE9F444000C6901 /* ViewModels */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = ViewModels;
-			sourceTree = "<group>";
-		};
-		314055132CE9F4D7000C6901 /* Resources */ = {
+		FF0E41AD2D70FE43006F52CE /* FYLE */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				314055142CE9F545000C6901 /* Exceptions for "Resources" folder in "fyle" target */,
+				FF0E41D32D70FE45006F52CE /* Exceptions for "FYLE" folder in "FYLE" target */,
 			);
-			path = Resources;
+			path = FYLE;
 			sourceTree = "<group>";
 		};
-		314055152CE9F570000C6901 /* Tests */ = {
+		FF0E41C42D70FE45006F52CE /* FYLETests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				3140551E2CE9F580000C6901 /* Exceptions for "Tests" folder in "fyle" target */,
-				3140551F2CE9F580000C6901 /* Exceptions for "Tests" folder in "fyleTests" target */,
-				314055202CE9F580000C6901 /* Exceptions for "Tests" folder in "fyleUITests" target */,
-			);
-			path = Tests;
+			path = FYLETests;
 			sourceTree = "<group>";
 		};
-		314055232CE9F5C6000C6901 /* App */ = {
+		FF0E41CE2D70FE45006F52CE /* FYLEUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = App;
-			sourceTree = "<group>";
-		};
-		314055252CE9F60E000C6901 /* Views */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Views;
-			sourceTree = "<group>";
-		};
-		37D861B22CCF8143002D85AA /* Storyboards */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Storyboards;
+			path = FYLEUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		37D861AD2CCF8143002D85AA /* Frameworks */ = {
+		FF0E41A82D70FE43006F52CE /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		37D861C32CCF8144002D85AA /* Frameworks */ = {
+		FF0E41BE2D70FE45006F52CE /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		37D861CD2CCF8144002D85AA /* Frameworks */ = {
+		FF0E41C82D70FE45006F52CE /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -139,27 +85,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		37D861A72CCF8143002D85AA = {
+		FF0E41A22D70FE43006F52CE = {
 			isa = PBXGroup;
 			children = (
-				314055252CE9F60E000C6901 /* Views */,
-				314054F02CE9F302000C6901 /* Models */,
-				314054FD2CE9F3C2000C6901 /* Services */,
-				314055092CE9F444000C6901 /* ViewModels */,
-				314055132CE9F4D7000C6901 /* Resources */,
-				37D861B22CCF8143002D85AA /* Storyboards */,
-				314055232CE9F5C6000C6901 /* App */,
-				314055152CE9F570000C6901 /* Tests */,
-				37D861B12CCF8143002D85AA /* Products */,
+				FF0E41AD2D70FE43006F52CE /* FYLE */,
+				FF0E41C42D70FE45006F52CE /* FYLETests */,
+				FF0E41CE2D70FE45006F52CE /* FYLEUITests */,
+				FF0E41AC2D70FE43006F52CE /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		37D861B12CCF8143002D85AA /* Products */ = {
+		FF0E41AC2D70FE43006F52CE /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				37D861B02CCF8143002D85AA /* fyle.app */,
-				37D861C62CCF8144002D85AA /* fyleTests.xctest */,
-				37D861D02CCF8144002D85AA /* fyleUITests.xctest */,
+				FF0E41AB2D70FE43006F52CE /* FYLE.app */,
+				FF0E41C12D70FE45006F52CE /* FYLETests.xctest */,
+				FF0E41CB2D70FE45006F52CE /* FYLEUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -167,135 +108,134 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		37D861AF2CCF8143002D85AA /* fyle */ = {
+		FF0E41AA2D70FE43006F52CE /* FYLE */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 37D861D92CCF8144002D85AA /* Build configuration list for PBXNativeTarget "fyle" */;
+			buildConfigurationList = FF0E41D42D70FE45006F52CE /* Build configuration list for PBXNativeTarget "FYLE" */;
 			buildPhases = (
-				37D861AC2CCF8143002D85AA /* Sources */,
-				37D861AD2CCF8143002D85AA /* Frameworks */,
-				37D861AE2CCF8143002D85AA /* Resources */,
+				FF0E41A72D70FE43006F52CE /* Sources */,
+				FF0E41A82D70FE43006F52CE /* Frameworks */,
+				FF0E41A92D70FE43006F52CE /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				314054F02CE9F302000C6901 /* Models */,
-				314054FD2CE9F3C2000C6901 /* Services */,
-				314055092CE9F444000C6901 /* ViewModels */,
-				314055132CE9F4D7000C6901 /* Resources */,
-				314055152CE9F570000C6901 /* Tests */,
-				314055232CE9F5C6000C6901 /* App */,
-				314055252CE9F60E000C6901 /* Views */,
-				37D861B22CCF8143002D85AA /* Storyboards */,
+				FF0E41AD2D70FE43006F52CE /* FYLE */,
 			);
-			name = fyle;
+			name = FYLE;
 			packageProductDependencies = (
 			);
-			productName = fyle;
-			productReference = 37D861B02CCF8143002D85AA /* fyle.app */;
+			productName = FYLE;
+			productReference = FF0E41AB2D70FE43006F52CE /* FYLE.app */;
 			productType = "com.apple.product-type.application";
 		};
-		37D861C52CCF8144002D85AA /* fyleTests */ = {
+		FF0E41C02D70FE45006F52CE /* FYLETests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 37D861DE2CCF8144002D85AA /* Build configuration list for PBXNativeTarget "fyleTests" */;
+			buildConfigurationList = FF0E41D92D70FE45006F52CE /* Build configuration list for PBXNativeTarget "FYLETests" */;
 			buildPhases = (
-				37D861C22CCF8144002D85AA /* Sources */,
-				37D861C32CCF8144002D85AA /* Frameworks */,
-				37D861C42CCF8144002D85AA /* Resources */,
+				FF0E41BD2D70FE45006F52CE /* Sources */,
+				FF0E41BE2D70FE45006F52CE /* Frameworks */,
+				FF0E41BF2D70FE45006F52CE /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				37D861C82CCF8144002D85AA /* PBXTargetDependency */,
+				FF0E41C32D70FE45006F52CE /* PBXTargetDependency */,
 			);
-			name = fyleTests;
+			fileSystemSynchronizedGroups = (
+				FF0E41C42D70FE45006F52CE /* FYLETests */,
+			);
+			name = FYLETests;
 			packageProductDependencies = (
 			);
-			productName = fyleTests;
-			productReference = 37D861C62CCF8144002D85AA /* fyleTests.xctest */;
+			productName = FYLETests;
+			productReference = FF0E41C12D70FE45006F52CE /* FYLETests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		37D861CF2CCF8144002D85AA /* fyleUITests */ = {
+		FF0E41CA2D70FE45006F52CE /* FYLEUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 37D861E12CCF8144002D85AA /* Build configuration list for PBXNativeTarget "fyleUITests" */;
+			buildConfigurationList = FF0E41DC2D70FE45006F52CE /* Build configuration list for PBXNativeTarget "FYLEUITests" */;
 			buildPhases = (
-				37D861CC2CCF8144002D85AA /* Sources */,
-				37D861CD2CCF8144002D85AA /* Frameworks */,
-				37D861CE2CCF8144002D85AA /* Resources */,
+				FF0E41C72D70FE45006F52CE /* Sources */,
+				FF0E41C82D70FE45006F52CE /* Frameworks */,
+				FF0E41C92D70FE45006F52CE /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				37D861D22CCF8144002D85AA /* PBXTargetDependency */,
+				FF0E41CD2D70FE45006F52CE /* PBXTargetDependency */,
 			);
-			name = fyleUITests;
+			fileSystemSynchronizedGroups = (
+				FF0E41CE2D70FE45006F52CE /* FYLEUITests */,
+			);
+			name = FYLEUITests;
 			packageProductDependencies = (
 			);
-			productName = fyleUITests;
-			productReference = 37D861D02CCF8144002D85AA /* fyleUITests.xctest */;
+			productName = FYLEUITests;
+			productReference = FF0E41CB2D70FE45006F52CE /* FYLEUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		37D861A82CCF8143002D85AA /* Project object */ = {
+		FF0E41A32D70FE43006F52CE /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1600;
-				LastUpgradeCheck = 1600;
+				LastSwiftUpdateCheck = 1620;
+				LastUpgradeCheck = 1620;
 				TargetAttributes = {
-					37D861AF2CCF8143002D85AA = {
-						CreatedOnToolsVersion = 16.0;
+					FF0E41AA2D70FE43006F52CE = {
+						CreatedOnToolsVersion = 16.2;
 					};
-					37D861C52CCF8144002D85AA = {
-						CreatedOnToolsVersion = 16.0;
-						TestTargetID = 37D861AF2CCF8143002D85AA;
+					FF0E41C02D70FE45006F52CE = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = FF0E41AA2D70FE43006F52CE;
 					};
-					37D861CF2CCF8144002D85AA = {
-						CreatedOnToolsVersion = 16.0;
-						TestTargetID = 37D861AF2CCF8143002D85AA;
+					FF0E41CA2D70FE45006F52CE = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = FF0E41AA2D70FE43006F52CE;
 					};
 				};
 			};
-			buildConfigurationList = 37D861AB2CCF8143002D85AA /* Build configuration list for PBXProject "fyle" */;
+			buildConfigurationList = FF0E41A62D70FE43006F52CE /* Build configuration list for PBXProject "FYLE" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
 			);
-			mainGroup = 37D861A72CCF8143002D85AA;
+			mainGroup = FF0E41A22D70FE43006F52CE;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = 37D861B12CCF8143002D85AA /* Products */;
+			productRefGroup = FF0E41AC2D70FE43006F52CE /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				37D861AF2CCF8143002D85AA /* fyle */,
-				37D861C52CCF8144002D85AA /* fyleTests */,
-				37D861CF2CCF8144002D85AA /* fyleUITests */,
+				FF0E41AA2D70FE43006F52CE /* FYLE */,
+				FF0E41C02D70FE45006F52CE /* FYLETests */,
+				FF0E41CA2D70FE45006F52CE /* FYLEUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		37D861AE2CCF8143002D85AA /* Resources */ = {
+		FF0E41A92D70FE43006F52CE /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		37D861C42CCF8144002D85AA /* Resources */ = {
+		FF0E41BF2D70FE45006F52CE /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		37D861CE2CCF8144002D85AA /* Resources */ = {
+		FF0E41C92D70FE45006F52CE /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -305,21 +245,21 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		37D861AC2CCF8143002D85AA /* Sources */ = {
+		FF0E41A72D70FE43006F52CE /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		37D861C22CCF8144002D85AA /* Sources */ = {
+		FF0E41BD2D70FE45006F52CE /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		37D861CC2CCF8144002D85AA /* Sources */ = {
+		FF0E41C72D70FE45006F52CE /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -329,29 +269,29 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		37D861C82CCF8144002D85AA /* PBXTargetDependency */ = {
+		FF0E41C32D70FE45006F52CE /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 37D861AF2CCF8143002D85AA /* fyle */;
-			targetProxy = 37D861C72CCF8144002D85AA /* PBXContainerItemProxy */;
+			target = FF0E41AA2D70FE43006F52CE /* FYLE */;
+			targetProxy = FF0E41C22D70FE45006F52CE /* PBXContainerItemProxy */;
 		};
-		37D861D22CCF8144002D85AA /* PBXTargetDependency */ = {
+		FF0E41CD2D70FE45006F52CE /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 37D861AF2CCF8143002D85AA /* fyle */;
-			targetProxy = 37D861D12CCF8144002D85AA /* PBXContainerItemProxy */;
+			target = FF0E41AA2D70FE43006F52CE /* FYLE */;
+			targetProxy = FF0E41CC2D70FE45006F52CE /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		37D861DA2CCF8144002D85AA /* Debug */ = {
+		FF0E41D52D70FE45006F52CE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 86K9KU885Q;
+				DEVELOPMENT_TEAM = 6Y22PH5H76;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Resources/Info.plist;
+				INFOPLIST_FILE = FYLE/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
@@ -362,7 +302,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "batch2-team9.fyle";
+				PRODUCT_BUNDLE_IDENTIFIER = "Batch02-Team09.FYLE";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -370,16 +310,16 @@
 			};
 			name = Debug;
 		};
-		37D861DB2CCF8144002D85AA /* Release */ = {
+		FF0E41D62D70FE45006F52CE /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 86K9KU885Q;
+				DEVELOPMENT_TEAM = 6Y22PH5H76;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Resources/Info.plist;
+				INFOPLIST_FILE = FYLE/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
@@ -390,7 +330,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "batch2-team9.fyle";
+				PRODUCT_BUNDLE_IDENTIFIER = "Batch02-Team09.FYLE";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -398,7 +338,7 @@
 			};
 			name = Release;
 		};
-		37D861DC2CCF8144002D85AA /* Debug */ = {
+		FF0E41D72D70FE45006F52CE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -450,7 +390,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -461,7 +401,7 @@
 			};
 			name = Debug;
 		};
-		37D861DD2CCF8144002D85AA /* Release */ = {
+		FF0E41D82D70FE45006F52CE /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -507,7 +447,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -517,118 +457,118 @@
 			};
 			name = Release;
 		};
-		37D861DF2CCF8144002D85AA /* Debug */ = {
+		FF0E41DA2D70FE45006F52CE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 86K9KU885Q;
+				DEVELOPMENT_TEAM = 6Y22PH5H76;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "batch2-team9.fyleTests";
+				PRODUCT_BUNDLE_IDENTIFIER = "Batch02-Team09.FYLETests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/fyle.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/fyle";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FYLE.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/FYLE";
 			};
 			name = Debug;
 		};
-		37D861E02CCF8144002D85AA /* Release */ = {
+		FF0E41DB2D70FE45006F52CE /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 86K9KU885Q;
+				DEVELOPMENT_TEAM = 6Y22PH5H76;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "batch2-team9.fyleTests";
+				PRODUCT_BUNDLE_IDENTIFIER = "Batch02-Team09.FYLETests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/fyle.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/fyle";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FYLE.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/FYLE";
 			};
 			name = Release;
 		};
-		37D861E22CCF8144002D85AA /* Debug */ = {
+		FF0E41DD2D70FE45006F52CE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 86K9KU885Q;
+				DEVELOPMENT_TEAM = 6Y22PH5H76;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "batch2-team9.fyleUITests";
+				PRODUCT_BUNDLE_IDENTIFIER = "Batch02-Team09.FYLEUITests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = fyle;
+				TEST_TARGET_NAME = FYLE;
 			};
 			name = Debug;
 		};
-		37D861E32CCF8144002D85AA /* Release */ = {
+		FF0E41DE2D70FE45006F52CE /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 86K9KU885Q;
+				DEVELOPMENT_TEAM = 6Y22PH5H76;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "batch2-team9.fyleUITests";
+				PRODUCT_BUNDLE_IDENTIFIER = "Batch02-Team09.FYLEUITests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = fyle;
+				TEST_TARGET_NAME = FYLE;
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		37D861AB2CCF8143002D85AA /* Build configuration list for PBXProject "fyle" */ = {
+		FF0E41A62D70FE43006F52CE /* Build configuration list for PBXProject "FYLE" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				37D861DC2CCF8144002D85AA /* Debug */,
-				37D861DD2CCF8144002D85AA /* Release */,
+				FF0E41D72D70FE45006F52CE /* Debug */,
+				FF0E41D82D70FE45006F52CE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		37D861D92CCF8144002D85AA /* Build configuration list for PBXNativeTarget "fyle" */ = {
+		FF0E41D42D70FE45006F52CE /* Build configuration list for PBXNativeTarget "FYLE" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				37D861DA2CCF8144002D85AA /* Debug */,
-				37D861DB2CCF8144002D85AA /* Release */,
+				FF0E41D52D70FE45006F52CE /* Debug */,
+				FF0E41D62D70FE45006F52CE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		37D861DE2CCF8144002D85AA /* Build configuration list for PBXNativeTarget "fyleTests" */ = {
+		FF0E41D92D70FE45006F52CE /* Build configuration list for PBXNativeTarget "FYLETests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				37D861DF2CCF8144002D85AA /* Debug */,
-				37D861E02CCF8144002D85AA /* Release */,
+				FF0E41DA2D70FE45006F52CE /* Debug */,
+				FF0E41DB2D70FE45006F52CE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		37D861E12CCF8144002D85AA /* Build configuration list for PBXNativeTarget "fyleUITests" */ = {
+		FF0E41DC2D70FE45006F52CE /* Build configuration list for PBXNativeTarget "FYLEUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				37D861E22CCF8144002D85AA /* Debug */,
-				37D861E32CCF8144002D85AA /* Release */,
+				FF0E41DD2D70FE45006F52CE /* Debug */,
+				FF0E41DE2D70FE45006F52CE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = 37D861A82CCF8143002D85AA /* Project object */;
+	rootObject = FF0E41A32D70FE43006F52CE /* Project object */;
 }
