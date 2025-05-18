@@ -69,6 +69,8 @@ class RemindersTableViewCell: UITableViewCell {
         fileNameLabel.text = placeholderText
         fileNameLabel.textAlignment = .center
         fileNameLabel.numberOfLines = 0
+        fileNameLabel.font = UIFont.boldSystemFont(ofSize: 17)
+        fileNameLabel.textColor = #colorLiteral(red: 0.3672261238, green: 0.3787894845, blue: 0.3846254349, alpha: 0.8043253311)
         dateLabel.isHidden = true
         self.accessoryView = nil
         isUserInteractionEnabled = false
@@ -77,7 +79,7 @@ class RemindersTableViewCell: UITableViewCell {
         fileNameTrailingConstraint?.isActive = false
         fileNameTrailingToContentViewConstraint?.isActive = true
     }
-    
+
     func configureForNonEmptyState(fileName: String, dateText: String, dateColor: UIColor, chevronTarget: Any?, action: Selector) {
         fileNameLabel.text = fileName
         fileNameLabel.textAlignment = .left

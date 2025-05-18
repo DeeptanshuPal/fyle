@@ -122,8 +122,7 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
         tableView.backgroundColor = .clear
         
         // Separator configuration
-        tableView.separatorStyle = .singleLine
-        tableView.separatorInset = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 15)
+        tableView.separatorStyle = .none // Disable default separators
         
         // Enable self-sizing cells with increased estimated height
         tableView.rowHeight = UITableView.automaticDimension
@@ -134,7 +133,7 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
         tableView.removeConstraints(tableView.constraints)
         
         NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 5), // Reduced from 10 to 5
+            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 5),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -10)
@@ -262,6 +261,7 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
         var placeholderText = ""
         var sectionCount = 0
         
+        // Determine section data based on search state
         if isSearching {
             switch indexPath.section {
             case 0:
@@ -320,10 +320,11 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
             }
         }
         
+        // Configure cell content
         if isEmptySection {
             cell.configureForEmptyState(placeholderText: placeholderText)
         } else {
-            guard let reminder = reminder else { fatalError("Reminder is nil when section is not empty") }
+            guard let reminder = reminder else { fatalError("Reminder is nil in non-empty section") }
             
             let fileName = reminder.name ?? "Unnamed Document"
             let dateFormatter = DateFormatter()
@@ -348,16 +349,49 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
             )
         }
         
-        // Create a custom background view to handle rounded corners for the entire cell
+        // Create a custom background view to handle rounded corners and glassmorphic design
         let backgroundView = UIView(frame: cell.bounds)
-        backgroundView.backgroundColor = .white
         backgroundView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         
         let cornerRadius: CGFloat = 10.0
-        backgroundView.layer.masksToBounds = true
         backgroundView.layer.cornerRadius = cornerRadius
         
-        if !isEmptySection {
+        if isEmptySection {
+            // Create gradient layer for empty state cells
+            let gradientLayer = CAGradientLayer()
+            gradientLayer.frame = backgroundView.bounds
+            gradientLayer.cornerRadius = cornerRadius
+            
+            // Define three colors for the gradient
+            let color1 = #colorLiteral(red: 0.9215686275, green: 0.937254902, blue: 1, alpha: 0.2078849337)
+            let color2 = #colorLiteral(red: 0.9215686275, green: 0.937254902, blue: 1, alpha: 0.323080505)
+            let color3 = #colorLiteral(red: 0.9215686275, green: 0.937254902, blue: 1, alpha: 0.3972733858)
+            
+            // Convert UIColors to CGColors for the gradient layer
+            gradientLayer.colors = [color1.cgColor, color2.cgColor, color3.cgColor]
+            gradientLayer.locations = [0.0, 0.8, 1.0] // Adjust these values to control color distribution
+            gradientLayer.startPoint = CGPoint(x: 0.0, y: 0.0) // Top-left
+            gradientLayer.endPoint = CGPoint(x: 0.0, y: 1.0) // Bottom-right
+            
+            // Add gradient layer to background view
+            backgroundView.layer.insertSublayer(gradientLayer, at: 0)
+            
+            // Glassmorphic effects
+            backgroundView.layer.masksToBounds = false
+            backgroundView.layer.shadowColor = UIColor.black.cgColor
+            backgroundView.layer.shadowOpacity = 0.3
+            backgroundView.layer.shadowOffset = .zero
+            backgroundView.layer.shadowRadius = 2
+            backgroundView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner,
+                                                  .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+            
+            // Add border
+            backgroundView.layer.borderWidth = 1.0 // Adjust thickness as needed
+            backgroundView.layer.borderColor = #colorLiteral(red: 0.9215686275, green: 0.937254902, blue: 1, alpha: 0.0981218957)
+        } else {
+            // Solid background for non-empty cells
+            backgroundView.backgroundColor = #colorLiteral(red: 0.9411764706, green: 0.9764705882, blue: 1, alpha: 1)
+            backgroundView.layer.masksToBounds = true
             if sectionCount == 1 {
                 backgroundView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner,
                                                       .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
@@ -368,18 +402,15 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
             } else {
                 backgroundView.layer.maskedCorners = []
             }
-        } else {
-            backgroundView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner,
-                                                  .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
         }
         
         // Set the custom background view
         cell.backgroundView = backgroundView
-        cell.backgroundColor = .clear // Clear the cell's background to let the backgroundView show through
-        cell.contentView.backgroundColor = .clear // Clear contentView background
+        cell.backgroundColor = .clear
+        cell.contentView.backgroundColor = .clear
         
+        // Reset margins to avoid interference
         cell.preservesSuperviewLayoutMargins = false
-        cell.separatorInset = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 15)
         cell.layoutMargins = UIEdgeInsets.zero
         
         return cell
@@ -421,20 +452,81 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
     }
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        cell.backgroundColor = .clear // Keep the cell background clear
-        cell.contentView.backgroundColor = .clear // Keep contentView background clear
-        cell.separatorInset = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 15)
+        // Remove any existing separator views to avoid duplicates
+        cell.contentView.subviews.forEach { subview in
+            if subview.tag == 999 { // Use a tag to identify separator views
+                subview.removeFromSuperview()
+            }
+        }
         
-        var isEmptySection = false
+        // Determine if the section is empty
+        let isEmptySection: Bool
+        let sectionCount: Int
         switch indexPath.section {
-        case 0: isEmptySection = isSearching ? filteredPastDueReminders.isEmpty : pastDueReminders.isEmpty
-        case 1: isEmptySection = isSearching ? filteredUpcomingReminders.isEmpty : upcomingReminders.isEmpty
-        case 2: isEmptySection = isSearching ? filteredFutureReminders.isEmpty : futureReminders.isEmpty
-        default: break
+        case 0:
+            isEmptySection = isSearching ? filteredPastDueReminders.isEmpty : pastDueReminders.isEmpty
+            sectionCount = isSearching ? filteredPastDueReminders.count : pastDueReminders.count
+        case 1:
+            isEmptySection = isSearching ? filteredUpcomingReminders.isEmpty : upcomingReminders.isEmpty
+            sectionCount = isSearching ? filteredUpcomingReminders.count : upcomingReminders.count
+        case 2:
+            isEmptySection = isSearching ? filteredFutureReminders.isEmpty : futureReminders.isEmpty
+            sectionCount = isSearching ? filteredFutureReminders.count : futureReminders.count
+        default:
+            return
         }
         
         if isEmptySection {
-            cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: .greatestFiniteMagnitude)
+            // No separator for empty sections
+            return
+        } else {
+            // Add a separator at the bottom of the cell, but not for the last cell in the section
+            if indexPath.row != sectionCount - 1 {
+                let separator = UIView()
+                separator.tag = 999 // Tag to identify separator views
+                separator.backgroundColor = .separator // Use the system separator color
+                separator.translatesAutoresizingMaskIntoConstraints = false
+                cell.addSubview(separator) // Add to cell instead of contentView
+                NSLayoutConstraint.activate([
+                    separator.leadingAnchor.constraint(equalTo: cell.leadingAnchor, constant: 15),
+                    separator.trailingAnchor.constraint(equalTo: cell.trailingAnchor, constant: -15),
+                    separator.bottomAnchor.constraint(equalTo: cell.bottomAnchor),
+                    separator.heightAnchor.constraint(equalToConstant: 0.5)
+                ])
+            }
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        let isEmptySection: Bool
+        if isSearching {
+            switch indexPath.section {
+            case 0:
+                isEmptySection = filteredPastDueReminders.isEmpty
+            case 1:
+                isEmptySection = filteredUpcomingReminders.isEmpty
+            case 2:
+                isEmptySection = filteredFutureReminders.isEmpty
+            default:
+                fatalError("Unexpected section")
+            }
+        } else {
+            switch indexPath.section {
+            case 0:
+                isEmptySection = pastDueReminders.isEmpty
+            case 1:
+                isEmptySection = upcomingReminders.isEmpty
+            case 2:
+                isEmptySection = futureReminders.isEmpty
+            default:
+                fatalError("Unexpected section")
+            }
+        }
+        
+        if isEmptySection && indexPath.row == 0 {
+            return 80.0 // Desired height for empty message cells
+        } else {
+            return UITableView.automaticDimension // Dynamic height for regular cells
         }
     }
     

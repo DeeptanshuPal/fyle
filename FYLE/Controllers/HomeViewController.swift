@@ -26,6 +26,9 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
     @IBOutlet weak var addButton: UIButton!
     @IBOutlet weak var profileButton: UIBarButtonItem!
     
+    @IBOutlet weak var fyleLogoLength: NSLayoutConstraint!
+    
+    
     // MARK: - Setup Navigation Bar Appearance
     private func configureNavigationBar() {
         // Ensure large titles are enabled
@@ -44,7 +47,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         navigationItem.scrollEdgeAppearance = appearance
         
         // Set the title
-        navigationItem.title = " fyle"
+//        navigationItem.title = " fyle"
         
         //  Set the back button title for the next screen
         navigationItem.backBarButtonItem = UIBarButtonItem(title: "Back", style: .plain, target: nil, action: nil)
@@ -315,6 +318,19 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         favouritesTableView.reloadData()
         updateTableViewHeight() // Update height after reloading data
         updateEmptyStateVisibility() // Update empty state visibility
+    }
+    
+    // Dynamic fyleLogoLength Adjustment
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        // Constants matching sizeForItemAt
+        let spacing: CGFloat = 17
+        let numberOfColumns: CGFloat = 2
+        let totalSpacing = (numberOfColumns - 1) * spacing
+        // Calculate itemWidth based on the collection view's current width
+        let itemWidth = (tileCollectionView.frame.width - totalSpacing) / numberOfColumns
+        // Set fyleLogoLength to 64.7% of itemWidth
+        fyleLogoLength.constant = itemWidth * 0.64705882
     }
     
     // Update table view data source
