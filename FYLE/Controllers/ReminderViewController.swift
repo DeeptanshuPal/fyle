@@ -16,7 +16,7 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
     @IBOutlet weak var remindersTableView: UITableView!
     
     // MARK: - Properties
-    private var reminders: [Document] = [] // Assuming Document has a 'reminderDate' and 'pdfData' attribute
+    private var reminders: [Document] = []
     private var pastDueReminders: [Document] = []
     private var upcomingReminders: [Document] = []
     private var futureReminders: [Document] = []
@@ -31,36 +31,23 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // Apply bottom blur
         applyBlurGradient()
-        
-        // Set up navigation bar with large title
         navigationItem.title = "Reminders"
         navigationController?.navigationBar.prefersLargeTitles = true
         
-        // Set up search bar
         setupSearchController()
-        
-        // Set up table view
         setupTableView()
-        
-        // Fetch reminders from Core Data
         fetchReminders()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        // Refresh data when view appears
         fetchReminders()
         remindersTableView.reloadData()
         
-        // Force scroll to top to ensure large title is displayed
         remindersTableView.setContentOffset(.zero, animated: false)
-        
-        // Ensure navigation tint colour is white
         self.navigationController?.navigationBar.tintColor = .white
         
-        // Create a translucent navigation bar appearance when scrolled
         let appearance = UINavigationBarAppearance()
         appearance.configureWithTransparentBackground()
         appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
@@ -68,7 +55,6 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
         appearance.backgroundColor = UIColor.white.withAlphaComponent(0.3)
         navigationController?.navigationBar.standardAppearance = appearance
         
-        // Ensure large title appears when at the top
         let scrollEdgeAppearance = UINavigationBarAppearance()
         scrollEdgeAppearance.configureWithTransparentBackground()
         scrollEdgeAppearance.titleTextAttributes = [.foregroundColor: UIColor.white]
@@ -81,63 +67,51 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        // Additional check to ensure large title is displayed
         remindersTableView.setContentOffset(.zero, animated: false)
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        // Ensure 16-point padding on leading and trailing edges
         adjustTableViewFrame()
     }
     
     // MARK: - Set up Bottom Blur
     private func applyBlurGradient() {
-        // Create Blur Effect View
-        let blurEffect = UIBlurEffect(style: .light) // Change to .dark if needed
+        let blurEffect = UIBlurEffect(style: .light)
         let blurView = UIVisualEffectView(effect: blurEffect)
         
-        // Set the Frame to Cover Bottom 120pt
         blurView.frame = CGRect(x: 0, y: view.bounds.height - 120, width: view.bounds.width, height: 120)
-        blurView.autoresizingMask = [.flexibleWidth, .flexibleTopMargin] // Adjust for different screen sizes
-
-        // Create Gradient Mask (90% -> 0% opacity)
+        blurView.autoresizingMask = [.flexibleWidth, .flexibleTopMargin]
+        
         let gradientLayer = CAGradientLayer()
         gradientLayer.frame = blurView.bounds
         gradientLayer.colors = [
-            UIColor(white: 1.0, alpha: 0.9).cgColor, // 90% opacity at bottom
-            UIColor(white: 1.0, alpha: 0.0).cgColor   // 0% opacity at top
+            UIColor(white: 1.0, alpha: 0.9).cgColor,
+            UIColor(white: 1.0, alpha: 0.0).cgColor
         ]
-        gradientLayer.startPoint = CGPoint(x: 0.5, y: 1.0) // Start at bottom
-        gradientLayer.endPoint = CGPoint(x: 0.5, y: 0.0)   // Fade to top
-
-        // Apply Gradient as a Mask to Blur View
+        gradientLayer.startPoint = CGPoint(x: 0.5, y: 1.0)
+        gradientLayer.endPoint = CGPoint(x: 0.5, y: 0.0)
+        
         let maskLayer = CALayer()
         maskLayer.frame = blurView.bounds
         maskLayer.addSublayer(gradientLayer)
         blurView.layer.mask = maskLayer
-
-        // Insert Blur View BELOW `addButton` (if present) or above table view
+        
         view.insertSubview(blurView, aboveSubview: remindersTableView)
     }
     
     // MARK: - Setup Methods
     private func setupSearchController() {
-        // Initialize the search controller
         searchController = UISearchController(searchResultsController: nil)
         searchController.searchResultsUpdater = self
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.searchBar.placeholder = "Search Reminders"
-        searchController.searchBar.tintColor = .white // Match navigation bar style
+        searchController.searchBar.tintColor = .white
         
-        // Add the search bar to the navigation bar
         navigationItem.searchController = searchController
-        navigationItem.hidesSearchBarWhenScrolling = false // Show search bar by default
-        
-        // Ensure the search bar doesn't hide the navigation bar
+        navigationItem.hidesSearchBarWhenScrolling = false
         definesPresentationContext = true
         
-        // Customize search bar appearance to match previous screens
         searchController.searchBar.isTranslucent = true
         searchController.searchBar.barTintColor = .clear
         searchController.searchBar.searchTextField.backgroundColor = UIColor.white.withAlphaComponent(0.6)
@@ -152,25 +126,23 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
         tableView.delegate = self
         tableView.backgroundColor = .clear
         
+        // Ensure the table view uses the grouped style for section grouping
         tableView.translatesAutoresizingMaskIntoConstraints = false
-        
-        // Remove any existing constraints from storyboard if needed
         tableView.removeConstraints(tableView.constraints)
         
-        // Add constraints relative to the safe area
         NSLayoutConstraint.activate([
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10) // 10 points below safe area top
+            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10)
         ])
     }
     
     private func fetchReminders() {
         let context = CoreDataManager.shared.context
         let fetchRequest: NSFetchRequest<Document> = Document.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "reminderDate != nil") // Fetch only documents with reminders
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "reminderDate", ascending: true)] // Sort by date
+        fetchRequest.predicate = NSPredicate(format: "reminderDate != nil")
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "reminderDate", ascending: true)]
         
         do {
             reminders = try context.fetch(fetchRequest)
@@ -249,7 +221,6 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
             }
         }
         
-        // Filter based on search text
         if let searchText = searchController.searchBar.text?.lowercased(), !searchText.isEmpty {
             filteredPastDueReminders = filteredPastDueReminders.filter { $0.name?.lowercased().contains(searchText) ?? false }
             filteredUpcomingReminders = filteredUpcomingReminders.filter { $0.name?.lowercased().contains(searchText) ?? false }
@@ -259,7 +230,7 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
     
     // MARK: - UITableViewDataSource
     func numberOfSections(in tableView: UITableView) -> Int {
-        return 3 // Past Due, Upcoming, Future
+        return 3
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -286,27 +257,31 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
         var reminder: Document?
         var isEmptySection = false
         var placeholderText = ""
+        var sectionCount = 0
         
         if isSearching {
             switch indexPath.section {
             case 0:
+                sectionCount = filteredPastDueReminders.count
                 if filteredPastDueReminders.isEmpty {
                     isEmptySection = true
-                    placeholderText = "No past due files"
+                    placeholderText = "No past files due"
                 } else {
                     reminder = filteredPastDueReminders[indexPath.row]
                 }
             case 1:
+                sectionCount = filteredUpcomingReminders.count
                 if filteredUpcomingReminders.isEmpty {
                     isEmptySection = true
-                    placeholderText = "No upcoming files"
+                    placeholderText = "No files expiring this month"
                 } else {
                     reminder = filteredUpcomingReminders[indexPath.row]
                 }
             case 2:
+                sectionCount = filteredFutureReminders.count
                 if filteredFutureReminders.isEmpty {
                     isEmptySection = true
-                    placeholderText = "No future files"
+                    placeholderText = "No files due in the future"
                 } else {
                     reminder = filteredFutureReminders[indexPath.row]
                 }
@@ -315,23 +290,26 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
         } else {
             switch indexPath.section {
             case 0:
+                sectionCount = pastDueReminders.count
                 if pastDueReminders.isEmpty {
                     isEmptySection = true
-                    placeholderText = "No past due files"
+                    placeholderText = "No past files due"
                 } else {
                     reminder = pastDueReminders[indexPath.row]
                 }
             case 1:
+                sectionCount = upcomingReminders.count
                 if upcomingReminders.isEmpty {
                     isEmptySection = true
-                    placeholderText = "No upcoming files"
+                    placeholderText = "No files expiring this month"
                 } else {
                     reminder = upcomingReminders[indexPath.row]
                 }
             case 2:
+                sectionCount = futureReminders.count
                 if futureReminders.isEmpty {
                     isEmptySection = true
-                    placeholderText = "No future files"
+                    placeholderText = "No files due in the future"
                 } else {
                     reminder = futureReminders[indexPath.row]
                 }
@@ -339,18 +317,14 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
             }
         }
         
+        // Configure cell content
         if isEmptySection {
-            // Configure cell for empty section
             cell.fileNameLabel.text = placeholderText
             cell.dateLabel.text = ""
             cell.dateLabel.textColor = .gray
-            cell.accessoryType = .none // Remove disclosure indicator
-            cell.backgroundColor = UIColor.white.withAlphaComponent(0.9)
-            cell.layer.cornerRadius = 11
-            cell.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
-            cell.isUserInteractionEnabled = false // Disable selection
+            cell.accessoryView = nil
+            cell.isUserInteractionEnabled = false
         } else {
-            // Configure cell for reminders
             guard let reminder = reminder else { fatalError("Reminder is nil when section is not empty") }
             
             cell.fileNameLabel.text = reminder.name ?? "Unnamed Document"
@@ -364,7 +338,6 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
                 cell.dateLabel.text = "No Date"
             }
             
-            // Set date label color based on section
             switch indexPath.section {
             case 0: cell.dateLabel.textColor = .systemRed
             case 1: cell.dateLabel.textColor = UIColor(red: 0.85, green: 0.65, blue: 0.0, alpha: 1.0)
@@ -372,61 +345,86 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
             default: cell.dateLabel.textColor = .black
             }
             
-            // Set cell background
-            cell.backgroundColor = UIColor.white.withAlphaComponent(0.9)
+            let chevronButton = UIButton(type: .system)
+            chevronButton.setImage(UIImage(systemName: "chevron.right.circle.fill"), for: .normal)
+            chevronButton.tintColor = .systemGray4
+            chevronButton.frame = CGRect(x: 0, y: 0, width: 50, height: 50)
+            chevronButton.imageView?.contentMode = .scaleAspectFit
+            chevronButton.contentHorizontalAlignment = .center
+            chevronButton.contentVerticalAlignment = .center
+            chevronButton.addTarget(self, action: #selector(disclosureTapped(_:)), for: .touchUpInside)
             
-            // Customize cell corners based on position in section
-            let sectionRowCount = tableView.numberOfRows(inSection: indexPath.section)
-            let isFirstRow = indexPath.row == 0
-            let isLastRow = indexPath.row == sectionRowCount - 1
-            
-            cell.layer.cornerRadius = 11
-            cell.layer.masksToBounds = true
-            
-            if isFirstRow && isLastRow {
-                cell.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
-            } else if isFirstRow {
-                cell.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
-            } else if isLastRow {
-                cell.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
-            } else {
-                cell.layer.maskedCorners = []
-            }
-            
-            // Add disclosure indicator
-            cell.accessoryType = .disclosureIndicator
+            cell.accessoryView = chevronButton
             cell.isUserInteractionEnabled = true
-            
-            // Add shadow
-            cell.layer.masksToBounds = false
-            cell.layer.shadowColor = UIColor.black.cgColor
-            cell.layer.shadowOpacity = 0.3
-            cell.layer.shadowOffset = CGSize(width: 0, height: 2)
-            cell.layer.shadowRadius = 4
-            cell.layer.shadowPath = UIBezierPath(roundedRect: cell.bounds, cornerRadius: 11).cgPath
-            cell.layer.shouldRasterize = true
-            cell.layer.rasterizationScale = UIScreen.main.scale
         }
         
+        // Apply rounded corners to section groups
+        let cornerRadius: CGFloat = 10.0
+        let backgroundView = UIView()
+        backgroundView.backgroundColor = .white
+        backgroundView.layer.cornerRadius = cornerRadius
+        
+        if sectionCount == 1 {
+            // Single row in section: round all corners
+            backgroundView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+        } else if indexPath.row == 0 {
+            // First row in section: round top corners
+            backgroundView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+        } else if indexPath.row == sectionCount - 1 {
+            // Last row in section: round bottom corners
+            backgroundView.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+        } else {
+            // Middle rows: no rounded corners
+            backgroundView.layer.maskedCorners = []
+        }
+        
+        cell.backgroundView = isEmptySection ? nil : backgroundView
+        cell.backgroundColor = .clear
+        
         return cell
+    }
+    
+    @objc func disclosureTapped(_ sender: UIButton) {
+        guard let cell = sender.superview as? UITableViewCell,
+              let indexPath = remindersTableView.indexPath(for: cell) else {
+            print("Error: Could not determine cell or indexPath from disclosure tap.")
+            return
+        }
+        
+        var reminder: Document?
+        if isSearching {
+            switch indexPath.section {
+            case 0: reminder = filteredPastDueReminders[indexPath.row]
+            case 1: reminder = filteredUpcomingReminders[indexPath.row]
+            case 2: reminder = filteredFutureReminders[indexPath.row]
+            default: return
+            }
+        } else {
+            switch indexPath.section {
+            case 0: reminder = pastDueReminders[indexPath.row]
+            case 1: reminder = upcomingReminders[indexPath.row]
+            case 2: reminder = futureReminders[indexPath.row]
+            default: return
+            }
+        }
+        
+        guard let document = reminder else { return }
+        selectedDocument = document
+        presentPDFViewer()
     }
     
     // MARK: - UITableViewDelegate
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         switch section {
         case 0: return "Past Due"
-        case 1: return "Upcoming"
-        case 2: return "Future"
+        case 1: return "This Month"
+        case 2: return "Upcoming"
         default: return nil
         }
     }
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        // Add extra spacing above the first section ("Past Due") and ensure enough height for the title
-        if section == 0 {
-            return 40.0 + 10.0 // 40 for title height, 10 for extra spacing
-        }
-        return 40.0 // Standard height for other sections
+        return section == 0 ? 50.0 : 40.0
     }
     
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
@@ -440,7 +438,6 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
         titleLabel.font = UIFont.boldSystemFont(ofSize: 16)
         headerView.addSubview(titleLabel)
         
-        // Constraints for title label
         NSLayoutConstraint.activate([
             titleLabel.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
             titleLabel.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
@@ -452,8 +449,8 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
     }
     
     func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
-        // Add a small footer to ensure spacing between sections
-        return 8.0
+        // Increase footer height for better spacing between rounded sections
+        return 20.0
     }
     
     func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
@@ -465,26 +462,202 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         
-        // Determine the selected document based on section
-        let reminder: Document
+        var reminder: Document?
         if isSearching {
             switch indexPath.section {
-            case 0: reminder = filteredPastDueReminders[indexPath.row]
-            case 1: reminder = filteredUpcomingReminders[indexPath.row]
-            case 2: reminder = filteredFutureReminders[indexPath.row]
-            default: fatalError("Unexpected section")
+            case 0: reminder = filteredPastDueReminders.isEmpty ? nil : filteredPastDueReminders[indexPath.row]
+            case 1: reminder = filteredUpcomingReminders.isEmpty ? nil : filteredUpcomingReminders[indexPath.row]
+            case 2: reminder = filteredFutureReminders.isEmpty ? nil : filteredFutureReminders[indexPath.row]
+            default: return
             }
         } else {
             switch indexPath.section {
-            case 0: reminder = pastDueReminders[indexPath.row]
-            case 1: reminder = upcomingReminders[indexPath.row]
-            case 2: reminder = futureReminders[indexPath.row]
-            default: fatalError("Unexpected section")
+            case 0: reminder = pastDueReminders.isEmpty ? nil : pastDueReminders[indexPath.row]
+            case 1: reminder = upcomingReminders.isEmpty ? nil : upcomingReminders[indexPath.row]
+            case 2: reminder = futureReminders.isEmpty ? nil : futureReminders[indexPath.row]
+            default: return
             }
         }
         
-        selectedDocument = reminder
-        presentPDFViewer()
+        guard let document = reminder else { return }
+        showDetails(for: document)
+    }
+    
+    func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
+        var document: Document?
+        if isSearching {
+            switch indexPath.section {
+            case 0: document = filteredPastDueReminders.isEmpty ? nil : filteredPastDueReminders[indexPath.row]
+            case 1: document = filteredUpcomingReminders.isEmpty ? nil : filteredUpcomingReminders[indexPath.row]
+            case 2: document = filteredFutureReminders.isEmpty ? nil : filteredFutureReminders[indexPath.row]
+            default: return nil
+            }
+        } else {
+            switch indexPath.section {
+            case 0: document = pastDueReminders.isEmpty ? nil : pastDueReminders[indexPath.row]
+            case 1: document = upcomingReminders.isEmpty ? nil : upcomingReminders[indexPath.row]
+            case 2: document = futureReminders.isEmpty ? nil : futureReminders[indexPath.row]
+            default: return nil
+            }
+        }
+        
+        guard let document = document else { return nil }
+        
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
+            let openFileAction = UIAction(title: "Open File", image: UIImage(systemName: "doc.text.viewfinder")) { [weak self] _ in
+                guard let self = self else { return }
+                self.selectedDocument = document
+                self.presentPDFViewer()
+            }
+            
+            let showDetailsAction = UIAction(title: "Show Details", image: UIImage(systemName: "info.circle")) { [weak self] _ in
+                self?.showDetails(for: document)
+            }
+            
+            let favoriteAction = UIAction(
+                title: document.isFavorite ? "Unmark as Favourite" : "Mark as Favourite",
+                image: UIImage(systemName: document.isFavorite ? "heart.fill" : "heart")
+            ) { [weak self] _ in
+                guard let self = self else { return }
+                document.isFavorite.toggle()
+                CoreDataManager.shared.saveContext()
+                self.remindersTableView.reloadData()
+            }
+            
+            let deleteAction = UIAction(title: "Delete", image: UIImage(systemName: "trash"), attributes: .destructive) { [weak self] _ in
+                guard let self = self else { return }
+                self.confirmDelete(document: document, at: indexPath)
+            }
+            
+            let sendCopyAction = UIAction(title: "Send a Copy", image: UIImage(systemName: "square.and.arrow.up")) { [weak self] _ in
+                guard let self = self else { return }
+                self.shareDocument(document)
+            }
+            
+            return UIMenu(title: "", children: [openFileAction, showDetailsAction, favoriteAction, deleteAction, sendCopyAction])
+        }
+    }
+    
+    // MARK: - Context Menu Actions
+    private func showDetails(for document: Document) {
+        guard let addDocumentVC = storyboard?.instantiateViewController(withIdentifier: "AddDocumentViewController") as? AddDocumentViewController else {
+            print("Error: Could not instantiate AddDocumentViewController from storyboard.")
+            return
+        }
+        
+        addDocumentVC.isEditingExistingDocument = true
+        addDocumentVC.isReadOnly = true
+        addDocumentVC.existingDocument = document
+        
+        addDocumentVC.loadViewIfNeeded()
+        
+        addDocumentVC.selectedImages = loadImagesFromDocument(document)
+        addDocumentVC.summaryData = loadSummaryData(from: document)
+        addDocumentVC.selectedCategories = document.categories?.allObjects as? [Category] ?? []
+        
+        if let favoriteSwitch = addDocumentVC.favoriteSwitch {
+            favoriteSwitch.isOn = document.isFavorite
+        } else {
+            print("Warning: favoriteSwitch is nil, cannot set favorite status.")
+        }
+        
+        addDocumentVC.nameTextField?.text = document.name
+        
+        if let expiryDate = document.expiryDate {
+            addDocumentVC.reminderSwitch?.isOn = true
+            addDocumentVC.expiryDatePicker?.date = expiryDate
+            addDocumentVC.expiryDatePicker?.isHidden = false
+            addDocumentVC.expiryDateLabel?.isHidden = false
+        } else {
+            addDocumentVC.reminderSwitch?.isOn = false
+            addDocumentVC.expiryDatePicker?.isHidden = true
+            addDocumentVC.expiryDateLabel?.isHidden = true
+        }
+        
+        addDocumentVC.updateUIWithExistingDocument()
+        
+        let navController = UINavigationController(rootViewController: addDocumentVC)
+        present(navController, animated: true, completion: nil)
+    }
+    
+    private func confirmDelete(document: Document, at indexPath: IndexPath) {
+        let alert = UIAlertController(
+            title: "Delete Document",
+            message: "Are you sure you want to delete \"\(document.name ?? "Unnamed Document")\"? This action cannot be undone.",
+            preferredStyle: .alert
+        )
+        
+        let deleteAction = UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
+            guard let self = self else { return }
+            CoreDataManager.shared.deleteDocument(document)
+            self.fetchReminders()
+            self.remindersTableView.reloadData()
+        }
+        
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        
+        alert.addAction(deleteAction)
+        alert.addAction(cancelAction)
+        
+        present(alert, animated: true, completion: nil)
+    }
+    
+    private func shareDocument(_ document: Document) {
+        guard let pdfData = document.pdfData else {
+            showAlert(title: "Error", message: "No PDF data available to share.")
+            return
+        }
+        
+        let fileName = (document.name ?? "Unnamed Document") + ".pdf"
+        let tempURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(fileName)
+        
+        do {
+            try pdfData.write(to: tempURL)
+            let activityViewController = UIActivityViewController(activityItems: [tempURL], applicationActivities: nil)
+            
+            if let popoverController = activityViewController.popoverPresentationController {
+                popoverController.sourceView = self.view
+                popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
+                popoverController.permittedArrowDirections = []
+            }
+            
+            present(activityViewController, animated: true) {
+                try? FileManager.default.removeItem(at: tempURL)
+            }
+        } catch {
+            showAlert(title: "Error", message: "Failed to prepare document for sharing: \(error.localizedDescription)")
+        }
+    }
+    
+    private func loadImagesFromDocument(_ document: Document) -> [UIImage] {
+        guard let pdfData = document.pdfData, let pdfDocument = PDFDocument(data: pdfData) else {
+            return []
+        }
+        
+        var images: [UIImage] = []
+        for pageIndex in 0..<pdfDocument.pageCount {
+            if let page = pdfDocument.page(at: pageIndex) {
+                let pageBounds = page.bounds(for: .mediaBox)
+                let renderer = UIGraphicsImageRenderer(size: pageBounds.size)
+                let image = renderer.image { context in
+                    UIColor.white.setFill()
+                    context.fill(pageBounds)
+                    context.cgContext.translateBy(x: 0, y: pageBounds.height)
+                    context.cgContext.scaleBy(x: 1.0, y: -1.0)
+                    page.draw(with: .mediaBox, to: context.cgContext)
+                }
+                images.append(image)
+            }
+        }
+        return images
+    }
+    
+    private func loadSummaryData(from document: Document) -> [String: String] {
+        guard let summaryData = document.summaryData,
+              let json = try? JSONSerialization.jsonObject(with: summaryData, options: []) as? [String: String] else {
+            return [:]
+        }
+        return json
     }
     
     // MARK: - PDF Viewer
@@ -497,10 +670,7 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
         let previewController = QLPreviewController()
         previewController.dataSource = self
         previewController.delegate = self
-        // Set custom title based on document name
         previewController.navigationItem.title = document.name ?? "Document"
-        
-        // Present modally to use default QuickLook navigation bar
         previewController.modalPresentationStyle = .fullScreen
         present(previewController, animated: true, completion: nil)
     }
@@ -514,15 +684,19 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
         guard let document = selectedDocument, let pdfData = document.pdfData else {
             fatalError("PDF data is unexpectedly nil.")
         }
-        let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("temp.pdf")
+        let documentName = (document.name ?? "Unnamed Document").replacingOccurrences(of: "/", with: "_")
+        let fileName = "\(documentName).pdf"
+        let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(fileName)
         try? pdfData.write(to: url)
         return url as QLPreviewItem
     }
     
     // MARK: - QLPreviewControllerDelegate
     func previewControllerDidDismiss(_ controller: QLPreviewController) {
-        // Clean up temporary file
-        if let url = try? URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("temp.pdf") {
+        if let document = selectedDocument {
+            let documentName = (document.name ?? "Unnamed Document").replacingOccurrences(of: "/", with: "_")
+            let fileName = "\(documentName).pdf"
+            let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(fileName)
             try? FileManager.default.removeItem(at: url)
         }
     }
@@ -544,7 +718,6 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
     // MARK: - Custom Methods
     private func adjustTableViewFrame() {
         guard let tableView = remindersTableView else { return }
-        
         let padding: CGFloat = 16.0
         let newFrame = CGRect(
             x: padding,

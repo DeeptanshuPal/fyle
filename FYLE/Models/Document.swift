@@ -20,7 +20,7 @@ public class Document: NSManagedObject {
     @NSManaged public var reminderDate: Date?
     @NSManaged public var categories: NSSet?
     @NSManaged public var sharedWith: NSSet?
-
+    @NSManaged public var isReceived: Bool // New attribute to track received documents
 
     // Class method for fetch request
     public class func fetchRequest() -> NSFetchRequest<Document> {

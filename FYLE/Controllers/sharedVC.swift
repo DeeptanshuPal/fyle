@@ -10,14 +10,22 @@ import MultipeerConnectivity
 import CoreData
 import UniformTypeIdentifiers
 import CoreLocation
+import QuickLook
+import PDFKit
 
-class sharedVC: UIViewController {
-
+class sharedVC: UIViewController, ShareDocumentPickerDelegate, QLPreviewControllerDataSource, QLPreviewControllerDelegate, AddDocumentViewControllerDelegate {
+    
     // MARK: - IBOutlets
     @IBOutlet weak var sendButton: UIButton!
     @IBOutlet weak var receiveButton: UIButton!
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var BGView: UIView!
+    @IBOutlet weak var BGView2: UIView!
+    @IBOutlet weak var BGView3: UIView!
+    @IBOutlet weak var emptyStateView: UIView!
+    @IBOutlet weak var emptyTrayImageView: UIImageView!
+    @IBOutlet weak var emptyTrayLabel: UILabel!
+    @IBOutlet weak var tableViewHeightConstraint: NSLayoutConstraint!
     
     // MARK: - Multipeer Properties
     var peerID: MCPeerID!
@@ -25,52 +33,82 @@ class sharedVC: UIViewController {
     var advertiser: MCNearbyServiceAdvertiser?
     var browserVC: MCBrowserViewController?
     var isAdvertising: Bool = false
-
-
-    // MARK: - PDF Data to Send
-    var pdfDataToSend: Data?
-
+    
+    // MARK: - Data to Send
+    var dataToSend: Data?
+    
     // MARK: - Core Data / Received Files
-    var receivedFiles: [Share] = []
-
+    var receivedFiles: [Document] = []
+    
     // MARK: - Location Manager
     var locationManager: CLLocationManager!
-
+    
+    // MARK: - Selected Document for Preview
+    private var selectedDocument: Document?
+    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // Set up navigation bar with large title
         navigationItem.title = "Shared"
         navigationController?.navigationBar.prefersLargeTitles = true
-
+        
         setupMultipeer()
         setupUI()
         fetchReceivedFiles()
         setupLocationPermissions()
-        applyBlurGradient() // Added blur gradient
+        applyBlurGradient()
+        updateEmptyStateVisibility()
         
-        // UI Misc.
-        BGView.layer.cornerRadius = 25
-        BGView.layer.shadowColor = UIColor.black.cgColor
+        BGView.layer.cornerRadius = 361/2
+        BGView.layer.shadowColor = UIColor.white.cgColor
         BGView.layer.shadowOpacity = 0.5
         BGView.layer.shadowOffset = .zero
         BGView.layer.shadowRadius = 5.0
         BGView.layer.masksToBounds = false
         
+        BGView2.layer.cornerRadius = 310/2
+        BGView2.layer.shadowColor = UIColor.white.cgColor
+        BGView2.layer.shadowOpacity = 0.5
+        BGView2.layer.shadowOffset = .zero
+        BGView2.layer.shadowRadius = 5.0
+        BGView2.layer.masksToBounds = false
+        
+        BGView3.layer.cornerRadius = 250/2
+        BGView3.layer.shadowColor = UIColor.white.cgColor
+        BGView3.layer.shadowOpacity = 0.5
+        BGView3.layer.shadowOffset = .zero
+        BGView3.layer.shadowRadius = 5.0
+        BGView3.layer.masksToBounds = false
+        
+        // Style empty state view
+        emptyStateView.layer.cornerRadius = 20
+        emptyStateView.layer.shadowColor = UIColor.black.cgColor
+        emptyStateView.layer.shadowOpacity = 0.5
+        emptyStateView.layer.shadowOffset = .zero
+        emptyStateView.layer.shadowRadius = 2.0
+        emptyStateView.layer.masksToBounds = false
+        
+        tableView.layer.cornerRadius = 11
+        tableView.backgroundColor = .clear
+        tableView.separatorStyle = .singleLine
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        // Ensure default large title appearance
         let appearance = UINavigationBarAppearance()
         appearance.configureWithTransparentBackground()
-        appearance.titleTextAttributes = [.foregroundColor: UIColor.white] // Adjust color as needed
-        appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white] // Adjust color as needed
+        appearance.titleTextAttributes = [.foregroundColor: UIColor.white]
+        appearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
         navigationController?.navigationBar.standardAppearance = appearance
         navigationController?.navigationBar.scrollEdgeAppearance = appearance
-        navigationController?.navigationBar.tintColor = .white // Adjust tint as needed
+        navigationController?.navigationBar.tintColor = .white
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        updateTableViewHeight()
     }
 }
 
@@ -112,17 +150,31 @@ extension sharedVC {
         tableView.dataSource = self
         tableView.separatorStyle = .none
         tableView.backgroundColor = .clear
+        tableView.isScrollEnabled = false // Disable scrolling for dynamic height
 
         styleButtons()
     }
 
     private func styleButtons() {
         let buttons = [sendButton, receiveButton]
-
         buttons.forEach { button in
-            button?.layer.shadowColor = UIColor.black.cgColor
+            // Disable animations while setting up the button
+            UIView.setAnimationsEnabled(false)
+            defer { UIView.setAnimationsEnabled(true) }
+
+            button?.adjustsImageWhenHighlighted = false
+            button?.showsTouchWhenHighlighted = false
+            
+            // Explicitly set title colors for all states
+            button?.setTitleColor(.white, for: .normal)
+            button?.setTitleColor(.white, for: .highlighted)
+            button?.setTitleColor(.white, for: .selected)
+            button?.setTitleColor(.white, for: .disabled)
+            
+            // Apply shadow
+            button?.layer.shadowColor = UIColor.white.cgColor
             button?.layer.shadowOffset = CGSize(width: 0, height: 2)
-            button?.layer.shadowOpacity = 0.3
+            button?.layer.shadowOpacity = 0.8
             button?.layer.shadowRadius = 4
         }
     }
@@ -146,18 +198,16 @@ extension sharedVC {
         let maskLayer = CALayer()
         maskLayer.frame = blurView.bounds
         maskLayer.addSublayer(gradientLayer)
-
         blurView.layer.mask = maskLayer
 
         view.addSubview(blurView)
     }
 
     func presentBrowserToSend() {
-        guard pdfDataToSend != nil else {
-            print("⚠️ No file selected to send.")
+        guard let dataToSend = self.dataToSend else {
+            print("⚠️ No data to send. dataToSend is nil.")
             return
         }
-
         browserVC = MCBrowserViewController(serviceType: "fyleshare123", session: session)
         browserVC?.delegate = self
         present(browserVC!, animated: true)
@@ -181,14 +231,39 @@ extension sharedVC: MCSessionDelegate {
         DispatchQueue.main.async {
             print("📥 Data received from \(peerID.displayName)")
 
-            let context = CoreDataManager.shared.context
-            let newShare = Share(context: context)
-            newShare.userId = peerID.displayName
-            newShare.fileName = "Received_\(Date().description).pdf"
-            newShare.fileData = data
+            do {
+                let sharedDoc = try JSONDecoder().decode(SharedDocument.self, from: data)
+                let context = CoreDataManager.shared.context
+                let newDocument = Document(context: context)
+                newDocument.name = sharedDoc.name
+                newDocument.pdfData = sharedDoc.pdfData
+                newDocument.summaryData = sharedDoc.summaryData
+                newDocument.expiryDate = sharedDoc.expiryDate
+                newDocument.reminderDate = sharedDoc.reminderDate
+                newDocument.isFavorite = sharedDoc.isFavorite
+                newDocument.dateAdded = sharedDoc.dateAdded
+                newDocument.thumbnail = sharedDoc.thumbnail
+                newDocument.isReceived = true
 
-            CoreDataManager.shared.saveContext()
-            self.fetchReceivedFiles()
+                if !sharedDoc.categoryNames.isEmpty {
+                    let fetchRequest: NSFetchRequest<Category> = Category.fetchRequest()
+                    fetchRequest.predicate = NSPredicate(format: "name IN %@", sharedDoc.categoryNames)
+                    var existingCategories = try context.fetch(fetchRequest)
+                    let existingNames = Set(existingCategories.map { $0.name ?? "" })
+                    let newCategories = sharedDoc.categoryNames.filter { !existingNames.contains($0) }
+                    for categoryName in newCategories {
+                        let newCategory = CoreDataManager.shared.createCategory(name: categoryName, image: "tray.full.fill", color: .gray)
+                        existingCategories.append(newCategory)
+                    }
+                    newDocument.addToCategories(NSSet(array: existingCategories))
+                }
+
+                try CoreDataManager.shared.saveContext()
+                self.fetchReceivedFiles()
+                self.updateEmptyStateVisibility()
+            } catch {
+                print("❌ Error decoding received data: \(error)")
+            }
         }
     }
 
@@ -208,11 +283,41 @@ extension sharedVC: MCNearbyServiceAdvertiserDelegate {
 // MARK: - MCBrowserViewControllerDelegate
 extension sharedVC: MCBrowserViewControllerDelegate {
     func browserViewControllerDidFinish(_ browserViewController: MCBrowserViewController) {
-        dismiss(animated: true)
+        // Disable animations during dismissal and alert presentation
+        UIView.setAnimationsEnabled(false)
+        defer { UIView.setAnimationsEnabled(true) }
+
+        dismiss(animated: false) {
+            if let data = self.dataToSend, !self.session.connectedPeers.isEmpty {
+                do {
+                    try self.session.send(data, toPeers: self.session.connectedPeers, with: .reliable)
+                    print("✅ File sent successfully.")
+                    let alert = UIAlertController(title: "Success", message: "File sent successfully.", preferredStyle: .alert)
+                    alert.addAction(UIAlertAction(title: "OK", style: .default))
+                    self.present(alert, animated: true)
+                    self.dataToSend = nil
+                } catch {
+                    print("❌ Error sending file: \(error.localizedDescription)")
+                    let alert = UIAlertController(title: "Error", message: "Failed to send file.", preferredStyle: .alert)
+                    alert.addAction(UIAlertAction(title: "OK", style: .default))
+                    self.present(alert, animated: true)
+                }
+            } else {
+                print("⚠️ No data or peers to send to.")
+                let alert = UIAlertController(title: "Error", message: "No peers connected.", preferredStyle: .alert)
+                alert.addAction(UIAlertAction(title: "OK", style: .default))
+                self.present(alert, animated: true)
+            }
+        }
     }
 
     func browserViewControllerWasCancelled(_ browserViewController: MCBrowserViewController) {
-        dismiss(animated: true)
+        // Disable animations during dismissal
+        UIView.setAnimationsEnabled(false)
+        defer { UIView.setAnimationsEnabled(true) }
+
+        dismiss(animated: false)
+        dataToSend = nil
     }
 }
 
@@ -226,7 +331,18 @@ extension sharedVC: UIDocumentPickerDelegate {
 
         do {
             let data = try Data(contentsOf: url)
-            pdfDataToSend = data
+            let sharedDoc = SharedDocument(
+                name: url.lastPathComponent,
+                pdfData: data,
+                summaryData: nil,
+                expiryDate: nil,
+                reminderDate: nil,
+                isFavorite: false,
+                dateAdded: Date(),
+                thumbnail: nil,
+                categoryNames: []
+            )
+            self.dataToSend = try JSONEncoder().encode(sharedDoc)
             presentBrowserToSend()
         } catch {
             print("❌ Error loading document: \(error.localizedDescription)")
@@ -237,34 +353,44 @@ extension sharedVC: UIDocumentPickerDelegate {
 // MARK: - IBActions
 extension sharedVC {
     @IBAction func sendButtonTapped(_ sender: UIButton) {
-        print("📤 Send tapped.")
+        print("📤 Send tapped")
+
+        // Disable animations during the tap and alert presentation
+        UIView.setAnimationsEnabled(false)
+        defer { UIView.setAnimationsEnabled(true) }
 
         let alert = UIAlertController(title: "Select Source", message: nil, preferredStyle: .actionSheet)
+        alert.addAction(UIAlertAction(title: "Pick from My Documents", style: .default, handler: { [weak self] _ in
+            self?.presentDocumentPicker()
+        }))
 
-        alert.addAction(UIAlertAction(title: "Pick from Files", style: .default, handler: { _ in
+        alert.addAction(UIAlertAction(title: "Pick from Device Files", style: .default, handler: { [weak self] _ in
             let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: [.pdf], asCopy: true)
             documentPicker.delegate = self
             documentPicker.allowsMultipleSelection = false
             documentPicker.modalPresentationStyle = .formSheet
-            self.present(documentPicker, animated: true)
-        }))
-
-        alert.addAction(UIAlertAction(title: "Pick from Saved Files", style: .default, handler: { _ in
-            self.pickFromSavedFiles()
+            self?.present(documentPicker, animated: true)
         }))
 
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
 
-        present(alert, animated: true)
+        present(alert, animated: true, completion: nil)
     }
 
     @IBAction func receiveButtonTapped(_ sender: UIButton) {
+        // Disable animations during the tap and alert presentation
+        UIView.setAnimationsEnabled(false)
+        defer { UIView.setAnimationsEnabled(true) }
+
         guard !isAdvertising else {
-            print("⚠️ Already advertising.")
+            advertiser?.stopAdvertisingPeer()
+            advertiser = nil
+            isAdvertising = false
+            print("🛑 Advertiser stopped.")
             return
         }
 
-        print("📥 Receive tapped.")
+        print("📥 Receive tapped")
 
         advertiser?.stopAdvertisingPeer()
         advertiser = nil
@@ -277,84 +403,370 @@ extension sharedVC {
         print("🚀 Advertiser started.")
 
         let alert = UIAlertController(title: "Receiving Mode", message: "Waiting for sender...", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Stop", style: .cancel, handler: { _ in
-            self.advertiser?.stopAdvertisingPeer()
-            self.advertiser = nil
-            self.isAdvertising = false
+        alert.addAction(UIAlertAction(title: "Stop", style: .cancel, handler: { [weak self] _ in
+            self?.advertiser?.stopAdvertisingPeer()
+            self?.advertiser = nil
+            self?.isAdvertising = false
             print("🛑 Advertiser stopped.")
         }))
 
-        present(alert, animated: true)
+        present(alert, animated: true, completion: nil)
     }
-
 }
 
-// MARK: - Pick from Saved Files
+// MARK: - Document Picker Presentation
 extension sharedVC {
-    func pickFromSavedFiles() {
-        let alert = UIAlertController(title: "Select a file", message: nil, preferredStyle: .actionSheet)
-
-        for file in receivedFiles {
-            alert.addAction(UIAlertAction(title: file.fileName ?? "Unknown", style: .default, handler: { _ in
-                if let fileData = file.fileData {
-                    self.pdfDataToSend = fileData
-                    self.presentBrowserToSend()
-                } else {
-                    print("⚠️ No data in selected file.")
-                }
-            }))
+    private func presentDocumentPicker() {
+        guard let pickerVC = storyboard?.instantiateViewController(withIdentifier: "ShareDocumentPickerViewController") as? ShareDocumentPickerViewController else {
+            print("❌ Failed to instantiate ShareDocumentPickerViewController from storyboard.")
+            return
         }
-
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        present(alert, animated: true)
+        
+        pickerVC.delegate = self
+        let navController = UINavigationController(rootViewController: pickerVC)
+        navController.modalPresentationStyle = .formSheet
+        present(navController, animated: true)
+    }
+    
+    // MARK: - ShareDocumentPickerDelegate
+    func didSelectDocument(_ document: Document) {
+        print("✅ Document selected: \(document.name ?? "Unnamed")") // Debug log
+        let sharedDoc = document.toSharedDocument()
+        do {
+            self.dataToSend = try JSONEncoder().encode(sharedDoc)
+            print("✅ Data encoded successfully, presenting browser") // Debug log
+            DispatchQueue.main.async { // Ensure presentation happens on main thread
+                self.presentBrowserToSend()
+            }
+        } catch {
+            print("❌ Error encoding document: \(error.localizedDescription)")
+        }
     }
 }
 
 // MARK: - Fetch Core Data & Table View
+
+// UITableViewDelegate, UITableViewDataSource
 extension sharedVC: UITableViewDelegate, UITableViewDataSource {
     func fetchReceivedFiles() {
-        let fetchRequest: NSFetchRequest<Share> = Share.fetchRequest()
+        receivedFiles = CoreDataManager.shared.fetchReceivedDocuments()
+        tableView.reloadData()
+        updateEmptyStateVisibility()
+        updateTableViewHeight()
+    }
+    
+    private func updateEmptyStateVisibility() {
+        emptyStateView.isHidden = !receivedFiles.isEmpty
+        emptyTrayLabel.isHidden = !receivedFiles.isEmpty
+        emptyTrayImageView.isHidden = !receivedFiles.isEmpty
+        tableView.isHidden = receivedFiles.isEmpty
+    }
 
-        do {
-            receivedFiles = try CoreDataManager.shared.context.fetch(fetchRequest)
-            tableView.reloadData()
-        } catch {
-            print("❌ Failed to fetch received files: \(error.localizedDescription)")
+    private func updateTableViewHeight() {
+        let rowHeight: CGFloat = 50
+        let totalHeight = min(CGFloat(receivedFiles.count) * rowHeight, 400)
+        tableViewHeightConstraint.constant = totalHeight
+        UIView.animate(withDuration: 0.2) {
+            self.view.layoutIfNeeded()
         }
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        receivedFiles.count
+        return receivedFiles.count
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-
         let cellIdentifier = "CustomCell"
         var cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier)
 
         if cell == nil {
             cell = UITableViewCell(style: .subtitle, reuseIdentifier: cellIdentifier)
-            cell?.backgroundColor = UIColor.white.withAlphaComponent(0.9)
-            cell?.layer.cornerRadius = 8
+            cell?.backgroundColor = UIColor.white
             cell?.layer.masksToBounds = true
         }
 
-        let file = receivedFiles[indexPath.row]
-        cell?.textLabel?.text = file.fileName ?? "No Name"
-        cell?.detailTextLabel?.text = "From: \(file.userId ?? "Unknown")"
-
-        // Add spacing between cells
-        cell?.contentView.layoutMargins = UIEdgeInsets(top: 8, left: 16, bottom: 8, right: 16)
-
+        let document = receivedFiles[indexPath.row]
+        cell?.textLabel?.text = document.name ?? "No Name"
+        
+        // Create a custom button for the disclosure indicator
+        let button = UIButton(type: .system)
+        button.setImage(UIImage(systemName: "chevron.right.circle.fill"), for: .normal)
+        button.tintColor = .systemGray4
+        button.frame = CGRect(x: 0, y: 0, width: 50, height: 50)
+        button.imageView?.contentMode = .scaleAspectFit
+        button.contentHorizontalAlignment = .center
+        button.contentVerticalAlignment = .center
+        button.addTarget(self, action: #selector(disclosureTapped(_:)), for: .touchUpInside)
+        cell?.accessoryView = button
+        
+        cell?.selectionStyle = .default
         return cell!
     }
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 70
+        return 50
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
+        let document = receivedFiles[indexPath.row]
+        showDetails(for: document) // Show details when cell body is tapped
+    }
+
+    @objc func disclosureTapped(_ sender: UIButton) {
+        guard let cell = sender.superview as? UITableViewCell,
+              let indexPath = tableView.indexPath(for: cell) else {
+            print("Error: Could not determine cell or indexPath from disclosure tap.")
+            return
+        }
+        selectedDocument = receivedFiles[indexPath.row]
+        presentPDFViewer() // Open document viewer when disclosure is tapped
+    }
+
+    func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
+        let document = receivedFiles[indexPath.row]
+        
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
+            let openFileAction = UIAction(title: "Open File", image: UIImage(systemName: "doc.text.viewfinder")) { [weak self] _ in
+                guard let self = self else { return }
+                self.selectedDocument = document
+                self.presentPDFViewer()
+            }
+            
+            let showDetailsAction = UIAction(title: "Show Details", image: UIImage(systemName: "info.circle")) { [weak self] _ in
+                self?.showDetails(for: document)
+            }
+            
+            let favoriteAction = UIAction(
+                title: document.isFavorite ? "Unmark as Favourite" : "Mark as Favourite",
+                image: UIImage(systemName: document.isFavorite ? "heart.fill" : "heart")
+            ) { [weak self] _ in
+                guard let self = self else { return }
+                document.isFavorite.toggle()
+                CoreDataManager.shared.saveContext()
+                self.tableView.reloadData()
+            }
+            
+            let deleteAction = UIAction(title: "Delete", image: UIImage(systemName: "trash"), attributes: .destructive) { [weak self] _ in
+                guard let self = self else { return }
+                self.confirmDelete(document: document, at: indexPath)
+            }
+            
+            let sendCopyAction = UIAction(title: "Send a Copy", image: UIImage(systemName: "square.and.arrow.up")) { [weak self] _ in
+                guard let self = self else { return }
+                self.shareDocument(document)
+            }
+            
+            return UIMenu(title: "", children: [openFileAction, showDetailsAction, favoriteAction, deleteAction, sendCopyAction])
+        }
+    }
+}
+
+// ... (Rest of the code remains unchanged)
+
+// MARK: - PDF Viewer
+extension sharedVC {
+    private func presentPDFViewer() {
+        guard let document = selectedDocument, let pdfData = document.pdfData else {
+            showAlert(title: "Error", message: "No PDF data available for this document.")
+            return
+        }
+        
+        let previewController = QLPreviewController()
+        previewController.dataSource = self
+        previewController.delegate = self
+        previewController.navigationItem.title = document.name ?? "Document"
+        
+        previewController.modalPresentationStyle = .fullScreen
+        present(previewController, animated: true, completion: nil)
+    }
+    
+    func numberOfPreviewItems(in controller: QLPreviewController) -> Int {
+        return 1
+    }
+    
+    func previewController(_ controller: QLPreviewController, previewItemAt index: Int) -> QLPreviewItem {
+        guard let document = selectedDocument, let pdfData = document.pdfData else {
+            fatalError("PDF data is unexpectedly nil.")
+        }
+        // Use the document name, sanitized for file system compatibility
+        let documentName = (document.name ?? "Unnamed Document").replacingOccurrences(of: "/", with: "_")
+        let fileName = "\(documentName).pdf"
+        let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(fileName)
+        
+        try? pdfData.write(to: url)
+        return url as QLPreviewItem
+    }
+    
+    func previewControllerDidDismiss(_ controller: QLPreviewController) {
+        // Clean up temporary file using the document name
+        if let document = selectedDocument {
+            let documentName = (document.name ?? "Unnamed Document").replacingOccurrences(of: "/", with: "_")
+            let fileName = "\(documentName).pdf"
+            let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(fileName)
+            try? FileManager.default.removeItem(at: url)
+        }
+    }
+}
+
+// MARK: - Context Menu Actions
+extension sharedVC {
+    private func showDetails(for document: Document) {
+        guard let addDocumentVC = storyboard?.instantiateViewController(withIdentifier: "AddDocumentViewController") as? AddDocumentViewController else {
+            print("Error: Could not instantiate AddDocumentViewController from storyboard.")
+            return
+        }
+        
+        // Set the delegate
+        addDocumentVC.delegate = self
+        
+        // Set flags to indicate editing an existing document and read-only mode
+        addDocumentVC.isEditingExistingDocument = true
+        addDocumentVC.isReadOnly = true
+        addDocumentVC.existingDocument = document
+        
+        // Force view loading to connect outlets
+        addDocumentVC.loadViewIfNeeded()
+        
+        // Debug print to check outlet connections
+        print("favoriteSwitch after load: \(String(describing: addDocumentVC.favoriteSwitch))")
+        print("nameTextField after load: \(String(describing: addDocumentVC.nameTextField))")
+        print("summaryTableView after load: \(String(describing: addDocumentVC.summaryTableView))")
+        print("thumbnailImageView after load: \(String(describing: addDocumentVC.thumbnailImageView))")
+        print("categoryButton after load: \(String(describing: addDocumentVC.categoryButton))")
+        print("reminderSwitch after load: \(String(describing: addDocumentVC.reminderSwitch))")
+        print("expiryDatePicker after load: \(String(describing: addDocumentVC.expiryDatePicker))")
+        print("expiryDateLabel after load: \(String(describing: addDocumentVC.expiryDateLabel))")
+        
+        // Pass the selected document's data to AddDocumentViewController
+        addDocumentVC.selectedImages = loadImagesFromDocument(document)
+        addDocumentVC.summaryData = loadSummaryData(from: document)
+        addDocumentVC.selectedCategories = document.categories?.allObjects as? [Category] ?? []
+        
+        if let favoriteSwitch = addDocumentVC.favoriteSwitch {
+            favoriteSwitch.isOn = document.isFavorite
+        } else {
+            print("Warning: favoriteSwitch is nil, cannot set favorite status.")
+        }
+        
+        addDocumentVC.nameTextField?.text = document.name
+        
+        if let expiryDate = document.expiryDate {
+            addDocumentVC.reminderSwitch?.isOn = true
+            addDocumentVC.expiryDatePicker?.date = expiryDate
+            addDocumentVC.expiryDatePicker?.isHidden = false
+            addDocumentVC.expiryDateLabel?.isHidden = false
+        } else {
+            addDocumentVC.reminderSwitch?.isOn = false
+            addDocumentVC.expiryDatePicker?.isHidden = true
+            addDocumentVC.expiryDateLabel?.isHidden = true
+        }
+        
+        // Manually trigger UI update
+        addDocumentVC.updateUIWithExistingDocument()
+        
+        let navController = UINavigationController(rootViewController: addDocumentVC)
+        present(navController, animated: true, completion: nil)
+    }
+    
+    // Helper to load images from document
+    private func loadImagesFromDocument(_ document: Document) -> [UIImage] {
+        guard let pdfData = document.pdfData, let pdfDocument = PDFDocument(data: pdfData) else {
+            return []
+        }
+        
+        var images: [UIImage] = []
+        for pageIndex in 0..<pdfDocument.pageCount {
+            if let page = pdfDocument.page(at: pageIndex) {
+                let pageBounds = page.bounds(for: .mediaBox)
+                let renderer = UIGraphicsImageRenderer(size: pageBounds.size)
+                let image = renderer.image { context in
+                    UIColor.white.setFill()
+                    context.fill(pageBounds)
+                    context.cgContext.translateBy(x: 0, y: pageBounds.height)
+                    context.cgContext.scaleBy(x: 1.0, y: -1.0)
+                    page.draw(with: .mediaBox, to: context.cgContext)
+                }
+                images.append(image)
+            }
+        }
+        return images
+    }
+    
+    // Helper to load summary data from document
+    private func loadSummaryData(from document: Document) -> [String: String] {
+        guard let summaryData = document.summaryData,
+              let json = try? JSONSerialization.jsonObject(with: summaryData, options: []) as? [String: String] else {
+            return [:]
+        }
+        return json
+    }
+    
+    private func confirmDelete(document: Document, at indexPath: IndexPath) {
+        let alert = UIAlertController(
+            title: "Delete Document",
+            message: "Are you sure you want to delete \"\(document.name ?? "Unnamed Document")\"? This action cannot be undone.",
+            preferredStyle: .alert
+        )
+        
+        let deleteAction = UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
+            guard let self = self else { return }
+            CoreDataManager.shared.deleteDocument(document)
+            self.receivedFiles.remove(at: indexPath.row)
+            self.tableView.deleteRows(at: [indexPath], with: .automatic)
+            self.updateTableViewHeight()
+            self.updateEmptyStateVisibility()
+        }
+        
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        
+        alert.addAction(deleteAction)
+        alert.addAction(cancelAction)
+        
+        present(alert, animated: true, completion: nil)
+    }
+    
+    private func shareDocument(_ document: Document) {
+        guard let pdfData = document.pdfData else {
+            showAlert(title: "Error", message: "No PDF data available to share.")
+            return
+        }
+        
+        let fileName = (document.name ?? "Unnamed Document") + ".pdf"
+        let tempURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(fileName)
+        
+        do {
+            try pdfData.write(to: tempURL)
+            let activityViewController = UIActivityViewController(activityItems: [tempURL], applicationActivities: nil)
+            
+            if let popoverController = activityViewController.popoverPresentationController {
+                popoverController.sourceView = self.view
+                popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
+                popoverController.permittedArrowDirections = []
+            }
+            
+            present(activityViewController, animated: true) {
+                try? FileManager.default.removeItem(at: tempURL)
+            }
+        } catch {
+            showAlert(title: "Error", message: "Failed to prepare document for sharing: \(error.localizedDescription)")
+        }
+    }
+    
+    private func showAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+}
+
+// MARK: - AddDocumentViewControllerDelegate
+extension sharedVC {
+    func didUpdateDocument() {
+        fetchReceivedFiles() // Refresh the data
+        tableView.reloadData() // Update the table view
+        updateTableViewHeight() // Adjust the table view height
+        updateEmptyStateVisibility() // Update empty state visibility
     }
 }
 
@@ -375,12 +787,10 @@ extension UIColor {
         var rgbValue: UInt64 = 0
         Scanner(string: cString).scanHexInt64(&rgbValue)
 
-        self.init(
-            red: CGFloat((rgbValue & 0xFF0000) >> 16) / 255.0,
-            green: CGFloat((rgbValue & 0x00FF00) >> 8) / 255.0,
-            blue: CGFloat(rgbValue & 0x0000FF) / 255.0,
-            alpha: 1.0
-        )
+        let red = CGFloat((rgbValue & 0xFF0000) >> 16) / 255.0
+        let green = CGFloat((rgbValue & 0x00FF00) >> 8) / 255.0
+        let blue = CGFloat(rgbValue & 0x0000FF) / 255.0
+
+        self.init(red: red, green: green, blue: blue, alpha: 1.0)
     }
 }
-

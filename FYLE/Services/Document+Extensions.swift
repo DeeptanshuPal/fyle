@@ -49,4 +49,32 @@ extension Document {
     func removeCategory(_ category: Category) {
         self.removeFromCategories(category)
     }
+    
+    // New method to convert Document to SharedDocument for sharing
+    func toSharedDocument() -> SharedDocument {
+        return SharedDocument(
+            name: self.name ?? "Untitled",
+            pdfData: self.pdfData ?? Data(),
+            summaryData: self.summaryData,
+            expiryDate: self.expiryDate,
+            reminderDate: self.reminderDate,
+            isFavorite: self.isFavorite,
+            dateAdded: self.dateAdded ?? Date(),
+            thumbnail: self.thumbnail,
+            categoryNames: self.categories?.allObjects.compactMap { ($0 as? Category)?.name } ?? []
+        )
+    }
+}
+
+// Define SharedDocument struct for sharing
+struct SharedDocument: Codable {
+    let name: String
+    let pdfData: Data
+    let summaryData: Data?
+    let expiryDate: Date?
+    let reminderDate: Date?
+    let isFavorite: Bool
+    let dateAdded: Date
+    let thumbnail: Data?
+    let categoryNames: [String]
 }

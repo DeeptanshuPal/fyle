@@ -5,19 +5,23 @@
 //  Created by Deeptanshu Pal on 28/02/25.
 //
 
-
 import UIKit
 import CoreData
 import PhotosUI
 import QuickLook
 import VisionKit // Added for document scanning
+import PDFKit // Added for loadImagesFromDocument
 
-class HomeViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UITableViewDataSource, UITableViewDelegate, QLPreviewControllerDataSource, QLPreviewControllerDelegate {
+class HomeViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UITableViewDataSource, UITableViewDelegate, QLPreviewControllerDataSource, QLPreviewControllerDelegate, AddDocumentViewControllerDelegate {
     
     @IBOutlet weak var tileCollectionView: UICollectionView!
     
     @IBOutlet weak var favouritesTableView: UITableView!
     @IBOutlet weak var favouritesImageBGView: UIView!
+    
+    @IBOutlet weak var emptyStateView: UIView!
+    @IBOutlet weak var emptyTrayImageView: UIImageView!
+    @IBOutlet weak var emptyTrayLabel: UILabel!
     
     @IBOutlet weak var addButton: UIButton!
     @IBOutlet weak var profileButton: UIBarButtonItem!
@@ -34,7 +38,6 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             .foregroundColor: UIColor(red: 238/255, green: 249/255, blue: 255/255, alpha: 1.0), // #EEF9FF
             .font: UIFont.systemFont(ofSize: 52, weight: .heavy)
         ]
-        
         
         // Apply the appearance to the navigation bar
         navigationItem.standardAppearance = appearance
@@ -55,7 +58,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         setupGradientBackground()
         applyBlurGradient()
         
-        // initial nav bar setup
+        // Initial nav bar setup
         configureNavigationBar()
         
         // Populate categories only if not already done
@@ -82,6 +85,17 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         addButton.layer.shadowOffset = .zero
         addButton.layer.shadowRadius = 5.0
         addButton.layer.masksToBounds = false
+        
+        // Style empty state view
+        emptyStateView.layer.cornerRadius = 20
+        emptyStateView.layer.shadowColor = UIColor.black.cgColor
+        emptyStateView.layer.shadowOpacity = 0.5
+        emptyStateView.layer.shadowOffset = .zero
+        emptyStateView.layer.shadowRadius = 5.0
+        emptyStateView.layer.masksToBounds = false
+        
+        // Update empty state visibility
+        updateEmptyStateVisibility()
         
         profileButton.isHidden = true // hide profile button (temporarily for review)
     }
@@ -150,7 +164,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         let documentsCount = CoreDataManager.shared.fetchDocuments().count
         let remindersCount = CoreDataManager.shared.fetchDocumentsWithReminders().count
         let categoriesCount = CoreDataManager.shared.fetchCategories().count
-        let sharedCount = CoreDataManager.shared.fetchShares().count
+        let sharedCount = CoreDataManager.shared.fetchReceivedDocuments().count // Updated to use fetchReceivedDocuments()
         
         return [
             Tile(title: "Files", imageName: "folder", count: documentsCount,
@@ -200,6 +214,14 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         let totalHeight = CGFloat(favourites.count) * rowHeight
         tableViewHeightConstraint?.constant = totalHeight
         favouritesTableView.layoutIfNeeded()
+    }
+    
+    // MARK: - Update Empty State Visibility
+    private func updateEmptyStateVisibility() {
+        emptyStateView.isHidden = !favourites.isEmpty
+        emptyTrayLabel.isHidden = !favourites.isEmpty
+        emptyTrayImageView.isHidden = !favourites.isEmpty
+        favouritesTableView.isHidden = favourites.isEmpty
     }
     
     // UICollectionView DataSource
@@ -258,7 +280,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             }
         }
         
-        else if tile.title == "Shared" { // Add navigation for Reminders tile
+        else if tile.title == "Shared" { // Add navigation for Shared tile
             let storyboard = UIStoryboard(name: "Main", bundle: nil)
             if let sharedVC = storyboard.instantiateViewController(withIdentifier: "sharedVC") as? sharedVC {
                 navigationController?.pushViewController(sharedVC, animated: true)
@@ -289,6 +311,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         tileCollectionView.reloadData()
         favouritesTableView.reloadData()
         updateTableViewHeight() // Update height after reloading data
+        updateEmptyStateVisibility() // Update empty state visibility
     }
     
     // Update table view data source
@@ -300,15 +323,89 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         let cell = tableView.dequeueReusableCell(withIdentifier: "FavouriteCell", for: indexPath) as! FavouriteTableViewCell
         let document = favourites[indexPath.row]
         cell.FavouriteFileName.text = document.name
-        cell.accessoryType = .disclosureIndicator
+        
+        // Create custom chevron button
+        let chevronButton = UIButton(type: .system)
+        chevronButton.setImage(UIImage(systemName: "chevron.right.circle.fill"), for: .normal)
+        chevronButton.tintColor = .systemGray4
+        chevronButton.frame = CGRect(x: 0, y: 0, width: 50, height: 50)
+        chevronButton.imageView?.contentMode = .scaleAspectFit
+        chevronButton.contentHorizontalAlignment = .center
+        chevronButton.contentVerticalAlignment = .center
+        
+        // Add target for chevron tap
+        chevronButton.addTarget(self, action: #selector(disclosureTapped(_:)), for: .touchUpInside)
+        
+        // Associate the button with the cell's index path using tag (optional, for safety)
+        chevronButton.tag = indexPath.row
+        
+        // Set as accessory view
+        cell.accessoryView = chevronButton
+        
         return cell
+    }
+    
+    @objc func disclosureTapped(_ sender: UIButton) {
+        guard let cell = sender.superview as? UITableViewCell,
+              let indexPath = favouritesTableView.indexPath(for: cell) else {
+            print("Error: Could not determine cell or indexPath from disclosure tap.")
+            return
+        }
+        selectedDocument = favourites[indexPath.row]
+        presentPDFViewer() // Assuming this method presents QLPreviewController
     }
     
     // MARK: - UITableViewDelegate
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        selectedDocument = favourites[indexPath.row]
-        presentPDFViewer()
+        let document = favourites[indexPath.row]
+        showDetails(for: document) // Assuming this method presents AddDocumentViewController
+    }
+    
+    func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
+        let document = favourites[indexPath.row]
+        
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
+            // "Open File" action
+            let openFileAction = UIAction(title: "Open File", image: UIImage(systemName: "doc.text.viewfinder")) { [weak self] _ in
+                guard let self = self else { return }
+                self.selectedDocument = document
+                self.presentPDFViewer()
+            }
+            
+            // "Show Details" action
+            let showDetailsAction = UIAction(title: "Show Details", image: UIImage(systemName: "info.circle")) { [weak self] _ in
+                self?.showDetails(for: document)
+            }
+            
+            // "Mark/Unmark as Favourite" action
+            let favoriteAction = UIAction(
+                title: document.isFavorite ? "Unmark as Favourite" : "Mark as Favourite",
+                image: UIImage(systemName: document.isFavorite ? "heart.fill" : "heart")
+            ) { [weak self] _ in
+                guard let self = self else { return }
+                document.isFavorite.toggle()
+                CoreDataManager.shared.saveContext()
+                self.favouritesTableView.reloadData()
+                self.updateTableViewHeight()
+                self.updateEmptyStateVisibility()
+            }
+            
+            // "Delete" action
+            let deleteAction = UIAction(title: "Delete", image: UIImage(systemName: "trash"), attributes: .destructive) { [weak self] _ in
+                guard let self = self else { return }
+                self.confirmDelete(document: document, at: indexPath)
+            }
+            
+            // "Send a Copy" action
+            let sendCopyAction = UIAction(title: "Send a Copy", image: UIImage(systemName: "square.and.arrow.up")) { [weak self] _ in
+                guard let self = self else { return }
+                self.shareDocument(document)
+            }
+            
+            // Return menu with "Open File" as the first option
+            return UIMenu(title: "", children: [openFileAction, showDetailsAction, favoriteAction, deleteAction, sendCopyAction])
+        }
     }
     
     // MARK: - PDF Viewer
@@ -343,15 +440,18 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         guard let document = selectedDocument, let pdfData = document.pdfData else {
             fatalError("PDF data is unexpectedly nil.")
         }
-        let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("temp.pdf")
+        let documentName = (document.name ?? "Document").replacingOccurrences(of: "/", with: "_")
+        let fileName = "\(documentName).pdf"
+        let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(fileName)
         try? pdfData.write(to: url)
         return url as QLPreviewItem
     }
     
     // MARK: - QLPreviewControllerDelegate
     func previewControllerDidDismiss(_ controller: QLPreviewController) {
-        // Clean up temporary file
-        if let url = try? URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("temp.pdf") {
+        let documentName = (selectedDocument?.name ?? "Document").replacingOccurrences(of: "/", with: "_")
+        let fileName = "\(documentName).pdf"
+        if let url = try? URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(fileName) {
             try? FileManager.default.removeItem(at: url)
         }
     }
@@ -402,6 +502,8 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         if let addVC = storyboard.instantiateViewController(withIdentifier: "AddDocumentViewController") as? AddDocumentViewController {
             // Pass selected images
             addVC.selectedImages = images
+            // Set the delegate
+            addVC.delegate = self
             // Wrap in navigation controller for Cancel/Save buttons
             let navController = UINavigationController(rootViewController: addVC)
             navController.modalPresentationStyle = .fullScreen
@@ -415,6 +517,8 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         if let addVC = storyboard.instantiateViewController(withIdentifier: "AddDocumentViewController") as? AddDocumentViewController {
             // Pass the PDF data instead of images
             addVC.pdfData = pdfData
+            // Set the delegate
+            addVC.delegate = self
             let navController = UINavigationController(rootViewController: addVC)
             navController.modalPresentationStyle = .fullScreen
             present(navController, animated: true)
@@ -446,6 +550,158 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         
         // Present the action sheet
         present(alert, animated: true)
+    }
+    
+    // MARK: - Context Menu Actions
+    private func showDetails(for document: Document) {
+        guard let addDocumentVC = storyboard?.instantiateViewController(withIdentifier: "AddDocumentViewController") as? AddDocumentViewController else {
+            print("Error: Could not instantiate AddDocumentViewController from storyboard.")
+            return
+        }
+        
+        // Set the delegate
+        addDocumentVC.delegate = self
+        
+        // Set flags to indicate editing an existing document and read-only mode
+        addDocumentVC.isEditingExistingDocument = true
+        addDocumentVC.isReadOnly = true
+        addDocumentVC.existingDocument = document
+        
+        // Force view loading to connect outlets
+        addDocumentVC.loadViewIfNeeded()
+        
+        // Debug print to check outlet connections
+        print("favoriteSwitch after load: \(String(describing: addDocumentVC.favoriteSwitch))")
+        print("nameTextField after load: \(String(describing: addDocumentVC.nameTextField))")
+        print("summaryTableView after load: \(String(describing: addDocumentVC.summaryTableView))")
+        print("thumbnailImageView after load: \(String(describing: addDocumentVC.thumbnailImageView))")
+        print("categoryButton after load: \(String(describing: addDocumentVC.categoryButton))")
+        print("reminderSwitch after load: \(String(describing: addDocumentVC.reminderSwitch))")
+        print("expiryDatePicker after load: \(String(describing: addDocumentVC.expiryDatePicker))")
+        print("expiryDateLabel after load: \(String(describing: addDocumentVC.expiryDateLabel))")
+        
+        // Pass the selected document's data to AddDocumentViewController
+        addDocumentVC.selectedImages = loadImagesFromDocument(document)
+        addDocumentVC.summaryData = loadSummaryData(from: document)
+        addDocumentVC.selectedCategories = document.categories?.allObjects as? [Category] ?? []
+        
+        if let favoriteSwitch = addDocumentVC.favoriteSwitch {
+            favoriteSwitch.isOn = document.isFavorite
+        } else {
+            print("Warning: favoriteSwitch is nil, cannot set favorite status.")
+        }
+        
+        addDocumentVC.nameTextField?.text = document.name
+        
+        if let expiryDate = document.expiryDate {
+            addDocumentVC.reminderSwitch?.isOn = true
+            addDocumentVC.expiryDatePicker?.date = expiryDate
+            addDocumentVC.expiryDatePicker?.isHidden = false
+            addDocumentVC.expiryDateLabel?.isHidden = false
+        } else {
+            addDocumentVC.reminderSwitch?.isOn = false
+            addDocumentVC.expiryDatePicker?.isHidden = true
+            addDocumentVC.expiryDateLabel?.isHidden = true
+        }
+        
+        // Manually trigger UI update
+        addDocumentVC.updateUIWithExistingDocument()
+        
+        let navController = UINavigationController(rootViewController: addDocumentVC)
+        present(navController, animated: true, completion: nil)
+    }
+    
+    // Helper to load images from document
+    private func loadImagesFromDocument(_ document: Document) -> [UIImage] {
+        guard let pdfData = document.pdfData, let pdfDocument = PDFDocument(data: pdfData) else {
+            return []
+        }
+        
+        var images: [UIImage] = []
+        for pageIndex in 0..<pdfDocument.pageCount {
+            if let page = pdfDocument.page(at: pageIndex) {
+                let pageBounds = page.bounds(for: .mediaBox)
+                let renderer = UIGraphicsImageRenderer(size: pageBounds.size)
+                let image = renderer.image { context in
+                    UIColor.white.setFill()
+                    context.fill(pageBounds)
+                    context.cgContext.translateBy(x: 0, y: pageBounds.height)
+                    context.cgContext.scaleBy(x: 1.0, y: -1.0)
+                    page.draw(with: .mediaBox, to: context.cgContext)
+                }
+                images.append(image)
+            }
+        }
+        return images
+    }
+    
+    // Helper to load summary data from document
+    private func loadSummaryData(from document: Document) -> [String: String] {
+        guard let summaryData = document.summaryData,
+              let json = try? JSONSerialization.jsonObject(with: summaryData, options: []) as? [String: String] else {
+            return [:]
+        }
+        return json
+    }
+    
+    private func confirmDelete(document: Document, at indexPath: IndexPath) {
+        let alert = UIAlertController(
+            title: "Delete Document",
+            message: "Are you sure you want to delete \"\(document.name ?? "Unnamed Document")\"? This action cannot be undone.",
+            preferredStyle: .alert
+        )
+        
+        let deleteAction = UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
+            guard let self = self else { return }
+            CoreDataManager.shared.deleteDocument(document)
+            self.favouritesTableView.deleteRows(at: [indexPath], with: .automatic)
+            self.favouritesTableView.reloadData()
+            self.updateTableViewHeight()
+            self.updateEmptyStateVisibility()
+            self.tileCollectionView.reloadData() // Refresh tile counts after deletion
+        }
+        
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        
+        alert.addAction(deleteAction)
+        alert.addAction(cancelAction)
+        
+        present(alert, animated: true, completion: nil)
+    }
+    
+    private func shareDocument(_ document: Document) {
+        guard let pdfData = document.pdfData else {
+            showAlert(title: "Error", message: "No PDF data available to share.")
+            return
+        }
+        
+        let fileName = (document.name ?? "Unnamed Document") + ".pdf"
+        let tempURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(fileName)
+        
+        do {
+            try pdfData.write(to: tempURL)
+            let activityViewController = UIActivityViewController(activityItems: [tempURL], applicationActivities: nil)
+            
+            if let popoverController = activityViewController.popoverPresentationController {
+                popoverController.sourceView = self.view
+                popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
+                popoverController.permittedArrowDirections = []
+            }
+            
+            present(activityViewController, animated: true) {
+                try? FileManager.default.removeItem(at: tempURL)
+            }
+        } catch {
+            showAlert(title: "Error", message: "Failed to prepare document for sharing: \(error.localizedDescription)")
+        }
+    }
+    
+    // MARK: - AddDocumentViewControllerDelegate
+    func didUpdateDocument() {
+        tileCollectionView.reloadData() // Refresh tiles (e.g., Files count might change)
+        favouritesTableView.reloadData() // Update the table view
+        updateTableViewHeight() // Adjust the table view height
+        updateEmptyStateVisibility() // Update empty state visibility
     }
 }
 

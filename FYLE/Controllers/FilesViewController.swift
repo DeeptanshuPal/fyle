@@ -12,9 +12,11 @@ import QuickLook
 
 class FilesViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchResultsUpdating, QLPreviewControllerDataSource, QLPreviewControllerDelegate, AddDocumentViewControllerDelegate {
     
-    
     // MARK: - IBOutlets
     @IBOutlet weak var filesTableView: UITableView?
+    @IBOutlet weak var emptyStateView: UIView!
+    @IBOutlet weak var emptyTrayImageView: UIImageView!
+    @IBOutlet weak var emptyTrayLabel: UILabel!
     
     // MARK: - Properties
     private var documents: [Document] = []
@@ -50,6 +52,17 @@ class FilesViewController: UIViewController, UITableViewDataSource, UITableViewD
         
         // Fetch documents from Core Data
         fetchDocuments()
+        
+        // Style empty state view
+        emptyStateView.layer.cornerRadius = 25
+        emptyStateView.layer.shadowColor = UIColor.black.cgColor
+        emptyStateView.layer.shadowOpacity = 0.5
+        emptyStateView.layer.shadowOffset = .zero
+        emptyStateView.layer.shadowRadius = 5.0
+        emptyStateView.layer.masksToBounds = false
+        
+        // Update empty state visibility
+        updateEmptyStateVisibility()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -62,6 +75,7 @@ class FilesViewController: UIViewController, UITableViewDataSource, UITableViewD
         fetchDocuments()
         filesTableView?.reloadData()
         updateTableViewHeight()
+        updateEmptyStateVisibility()
         
         // Create a translucent navigation bar appearance when scrolled
         let appearance = UINavigationBarAppearance()
@@ -159,6 +173,7 @@ class FilesViewController: UIViewController, UITableViewDataSource, UITableViewD
         filteredDocuments = documents
         filesTableView?.reloadData()
         updateTableViewHeight()
+        updateEmptyStateVisibility()
     }
     
     private func updateTableViewHeight() {
@@ -173,6 +188,16 @@ class FilesViewController: UIViewController, UITableViewDataSource, UITableViewD
         print("Updated table view height to: \(totalHeight) for \(filteredDocuments.count) rows.")
     }
     
+    // MARK: - Update Empty State Visibility
+    private func updateEmptyStateVisibility() {
+        guard let tableView = filesTableView else { return }
+        let isEmpty = filteredDocuments.isEmpty
+        emptyStateView.isHidden = !isEmpty
+        emptyTrayLabel.isHidden = !isEmpty
+        emptyTrayImageView.isHidden = !isEmpty
+        tableView.isHidden = isEmpty
+    }
+    
     // MARK: - UITableViewDataSource
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return filteredDocuments.count
@@ -185,7 +210,26 @@ class FilesViewController: UIViewController, UITableViewDataSource, UITableViewD
         let cell = tableView.dequeueReusableCell(withIdentifier: "FileCell", for: indexPath) as! FilesTableViewCell
         let document = filteredDocuments[indexPath.row]
         cell.fileNameLabel.text = document.name ?? "Unnamed Document"
-        cell.accessoryType = .disclosureIndicator
+        
+        // Create a custom button for the disclosure indicator
+        let button = UIButton(type: .system)
+        button.setImage(UIImage(systemName: "chevron.right.circle.fill"), for: .normal)
+        button.tintColor = .systemGray4
+        
+        // Explicitly set the button size
+        button.frame = CGRect(x: 0, y: 0, width: 50, height: 50)
+        
+        // Ensure the image scales appropriately
+        button.imageView?.contentMode = .scaleAspectFit
+        button.contentHorizontalAlignment = .center
+        button.contentVerticalAlignment = .center
+        
+        // Add target for tap action
+        button.addTarget(self, action: #selector(disclosureTapped(_:)), for: .touchUpInside)
+        
+        // Set as accessory view
+        cell.accessoryView = button
+        
         return cell
     }
     
@@ -196,6 +240,16 @@ class FilesViewController: UIViewController, UITableViewDataSource, UITableViewD
             return
         }
         tableView.deselectRow(at: indexPath, animated: true)
+        let document = filteredDocuments[indexPath.row]
+        showDetails(for: document)
+    }
+    
+    @objc func disclosureTapped(_ sender: UIButton) {
+        guard let cell = sender.superview as? UITableViewCell,
+              let indexPath = filesTableView?.indexPath(for: cell) else {
+            print("Error: Could not determine cell or indexPath from disclosure tap.")
+            return
+        }
         selectedDocument = filteredDocuments[indexPath.row]
         presentPDFViewer()
     }
@@ -205,15 +259,19 @@ class FilesViewController: UIViewController, UITableViewDataSource, UITableViewD
         let document = filteredDocuments[indexPath.row]
         
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
-            // "Show Details" action
+            let openFileAction = UIAction(title: "Open File", image: UIImage(systemName: "doc.text.viewfinder")) { [weak self] _ in
+                guard let self = self else { return }
+                self.selectedDocument = document
+                self.presentPDFViewer()
+            }
+            
             let showDetailsAction = UIAction(title: "Show Details", image: UIImage(systemName: "info.circle")) { [weak self] _ in
                 self?.showDetails(for: document)
             }
             
-            // "Mark/Unmark as Favourite" action with dynamic star icon
             let favoriteAction = UIAction(
                 title: document.isFavorite ? "Unmark as Favourite" : "Mark as Favourite",
-                image: UIImage(systemName: document.isFavorite ? "star.fill" : "star")
+                image: UIImage(systemName: document.isFavorite ? "heart.fill" : "heart")
             ) { [weak self] _ in
                 guard let self = self else { return }
                 document.isFavorite.toggle()
@@ -221,19 +279,17 @@ class FilesViewController: UIViewController, UITableViewDataSource, UITableViewD
                 self.filesTableView?.reloadData()
             }
             
-            // "Delete" action with confirmation
             let deleteAction = UIAction(title: "Delete", image: UIImage(systemName: "trash"), attributes: .destructive) { [weak self] _ in
                 guard let self = self else { return }
                 self.confirmDelete(document: document, at: indexPath)
             }
             
-            // "Send a Copy" action
             let sendCopyAction = UIAction(title: "Send a Copy", image: UIImage(systemName: "square.and.arrow.up")) { [weak self] _ in
                 guard let self = self else { return }
                 self.shareDocument(document)
             }
             
-            return UIMenu(title: "", children: [showDetailsAction, favoriteAction, deleteAction, sendCopyAction])
+            return UIMenu(title: "", children: [openFileAction, showDetailsAction, favoriteAction, deleteAction, sendCopyAction])
         }
     }
     
@@ -252,6 +308,7 @@ class FilesViewController: UIViewController, UITableViewDataSource, UITableViewD
             self.filteredDocuments.removeAll { $0 == document }
             self.filesTableView?.deleteRows(at: [indexPath], with: .automatic)
             self.updateTableViewHeight()
+            self.updateEmptyStateVisibility()
         }
         
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
@@ -387,17 +444,11 @@ class FilesViewController: UIViewController, UITableViewDataSource, UITableViewD
     }
     
     // MARK: - PDF Viewer
-    private func presentPDFViewer() {
-        guard let document = selectedDocument, let pdfData = document.pdfData else {
-            showAlert(title: "Error", message: "No PDF data available for this document.")
-            return
-        }
-        
+    func presentPDFViewer() {
         let previewController = QLPreviewController()
         previewController.dataSource = self
         previewController.delegate = self
-        previewController.navigationItem.title = document.name ?? "Document"
-        
+        previewController.navigationItem.title = selectedDocument?.name ?? "Document" // Set the title here
         previewController.modalPresentationStyle = .fullScreen
         present(previewController, animated: true, completion: nil)
     }
@@ -408,17 +459,24 @@ class FilesViewController: UIViewController, UITableViewDataSource, UITableViewD
     }
     
     func previewController(_ controller: QLPreviewController, previewItemAt index: Int) -> QLPreviewItem {
-        guard let document = selectedDocument, let pdfData = document.pdfData else {
-            fatalError("PDF data is unexpectedly nil.")
+        guard let pdfData = selectedDocument?.pdfData else {
+            fatalError("No PDF data available for preview.")
         }
-        let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("temp.pdf")
+        
+        // Use the document name, sanitized for file system compatibility
+        let documentName = (selectedDocument?.name ?? "Document").replacingOccurrences(of: "/", with: "_")
+        let fileName = "\(documentName).pdf"
+        let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(fileName)
+        
         try? pdfData.write(to: url)
         return url as QLPreviewItem
     }
     
     // MARK: - QLPreviewControllerDelegate
     func previewControllerDidDismiss(_ controller: QLPreviewController) {
-        if let url = try? URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("temp.pdf") {
+        let documentName = (selectedDocument?.name ?? "Document").replacingOccurrences(of: "/", with: "_")
+        let fileName = "\(documentName).pdf"
+        if let url = try? URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(fileName) {
             try? FileManager.default.removeItem(at: url)
         }
     }
@@ -445,6 +503,7 @@ class FilesViewController: UIViewController, UITableViewDataSource, UITableViewD
         
         filesTableView?.reloadData()
         updateTableViewHeight()
+        updateEmptyStateVisibility()
         print("Search updated. Filtered documents: \(filteredDocuments.count), Height: \(tableViewHeightConstraint?.constant ?? 0)")
     }
     
@@ -453,5 +512,6 @@ class FilesViewController: UIViewController, UITableViewDataSource, UITableViewD
         fetchDocuments() // Refresh the data
         filesTableView?.reloadData() // Update the table view
         updateTableViewHeight() // Adjust the table view height
+        updateEmptyStateVisibility() // Update empty state visibility
     }
 }

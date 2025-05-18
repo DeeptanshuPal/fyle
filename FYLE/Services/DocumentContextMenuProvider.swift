@@ -32,7 +32,7 @@ extension DocumentContextMenuProvider where Self: UIViewController {
             
             let favoriteAction = UIAction(
                 title: document.isFavorite ? "Unmark as Favourite" : "Mark as Favourite",
-                image: UIImage(systemName: document.isFavorite ? "star.fill" : "star")
+                image: UIImage(systemName: document.isFavorite ? "heart.fill" : "heart")
             ) { [weak self] _ in
                 self?.toggleFavoriteStatus(for: document)
             }

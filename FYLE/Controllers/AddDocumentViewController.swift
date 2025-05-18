@@ -1,8 +1,8 @@
 //
-//  AddDocumentViewController.swift
-//  FYLE
+// AddDocumentViewController.swift
+// FYLE
 //
-//  Created by Deeptanshu Pal on 04/03/25.
+// Created by Deeptanshu Pal on 04/03/25.
 //
 
 import UIKit
@@ -10,6 +10,7 @@ import CoreData
 import PhotosUI
 import Vision
 import PDFKit
+import QuickLook
 
 // Delegate protocol for notifying FilesViewController
 protocol AddDocumentViewControllerDelegate: AnyObject {
@@ -21,32 +22,29 @@ class TopAlignedAspectFillImageView: UIImageView {
     override func layoutSubviews() {
         super.layoutSubviews()
         
-        guard let image = image else { return }
+        guard let image = image else {
+            print("No image set in TopAlignedAspectFillImageView")
+            return
+        }
         
-        // Set content mode to aspect fill
         contentMode = .scaleAspectFill
         
-        // Calculate aspect ratios
         let imageAspectRatio = image.size.width / image.size.height
         let viewAspectRatio = bounds.width / bounds.height
         
         if imageAspectRatio > viewAspectRatio {
-            // Image is wider than the view (height determines scaling to preserve top)
-            let scale = bounds.height / image.size.height // Scale to fit height
+            let scale = bounds.height / image.size.height
             let scaledWidth = image.size.width * scale
-            let excessWidth = scaledWidth - bounds.width // Total width to crop
-            let xOffset = excessWidth / 2 / scaledWidth // Offset to center, cropping equally from left and right
+            let excessWidth = scaledWidth - bounds.width
+            let xOffset = excessWidth / 2 / scaledWidth
             layer.contentsRect = CGRect(x: xOffset, y: 0, width: bounds.width / scaledWidth, height: 1)
         } else {
-            // Image is taller than the view (width determines scaling, top is preserved)
-            let scale = bounds.width / image.size.width // Scale to fit width
+            let scale = bounds.width / image.size.width
             let scaledHeight = image.size.height * scale
-            let excessHeight = scaledHeight - bounds.height // Height to crop from bottom
-            // No xOffset needed since width fits, y=0 keeps top aligned
+            let excessHeight = scaledHeight - bounds.height
             layer.contentsRect = CGRect(x: 0, y: 0, width: 1, height: bounds.height / scaledHeight)
         }
         
-        // Ensure clipping to bounds
         clipsToBounds = true
     }
 }
@@ -66,43 +64,43 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
     @IBOutlet weak var saveButton: UIButton!
     @IBOutlet weak var favoriteSwitch: UISwitch?
     
-    @IBOutlet weak var SummaryView: UITableView! // Consider removing this redundant outlet
+    @IBOutlet weak var SummaryView: UITableView!
     @IBOutlet weak var CategoryView: UIView!
     @IBOutlet weak var ReminderView: UIView!
     @IBOutlet weak var FavouriteView: UIView!
     
     // MARK: - Constraints
-    @IBOutlet weak var reminderViewHeightConstraint: NSLayoutConstraint! // Outlet for dynamic height
+    @IBOutlet weak var reminderViewHeightConstraint: NSLayoutConstraint!
     
     // MARK: - Properties
-    var selectedImages: [UIImage] = []
-    var pdfData: Data? // To store the PDF data directly from the document picker
+    var selectedImages: [UIImage]? // Changed to optional from implicitly unwrapped optional
+    var pdfData: Data?
     var summaryData: [String: String] = [:]
     var selectedCategories: [Category] = []
     private var isFirstImageSet = false
-    private var tableViewHeightConstraint: NSLayoutConstraint? // For dynamic summaryTableView height
-    var isEditingExistingDocument = false // Tracks if editing an existing document
-    var isReadOnly = false // Property to indicate read-only mode
-    var existingDocument: Document? // Store the document to update
-    weak var delegate: AddDocumentViewControllerDelegate? // Delegate to notify FilesViewController
+    private var tableViewHeightConstraint: NSLayoutConstraint?
+    var isEditingExistingDocument = false
+    var isReadOnly = false
+    var existingDocument: Document?
+    weak var delegate: AddDocumentViewControllerDelegate?
     
-    // Keywords for auto-categorization
+    // Updated keywords for auto-categorization
     private let categoryKeywords: [String: [String]] = [
-        "Home": ["lease", "rent", "mortgage", "property", "house", "apartment", "landlord", "tenant", "utility", "maintenance"],
-        "Vehicle": ["auto", "car", "insurance", "registration", "loan", "vehicle", "VIN", "license", "plate", "maintenance", "repair"],
-        "School": ["school", "tuition", "fee", "admission", "exam", "result", "report", "certificate", "diploma", "transcript"],
-        "Bank": ["bank", "account", "statement", "loan", "credit", "debit", "transaction", "interest", "balance", "overdraft"],
-        "Medical": ["health", "medical", "hospital", "prescription", "doctor", "patient", "diagnosis", "treatment", "insurance", "bill"],
-        "College": ["college", "university", "admission", "fee", "scholarship", "exam", "result", "certificate", "transcript", "graduation"],
-        "Land": ["land", "property", "deed", "survey", "plot", "ownership", "lease", "rent", "mortgage", "registry"],
-        "Warranty": ["warranty", "guarantee", "product", "repair", "replacement", "validity", "expiry", "terms", "conditions", "service"],
-        "Family": ["family", "marriage", "birth", "certificate", "divorce", "adoption", "guardianship", "inheritance", "will", "estate"],
-        "Travel": ["travel", "ticket", "flight", "hotel", "booking", "itinerary", "visa", "passport", "reservation", "tour"],
-        "Business": ["business", "contract", "agreement", "invoice", "tax", "partnership", "incorporation", "license", "permit", "compliance"],
-        "Insurance": ["insurance", "policy", "premium", "claim", "coverage", "health", "life", "vehicle", "property", "renewal"],
-        "Education": ["education", "school", "college", "tuition", "fee", "certificate", "diploma", "transcript", "result", "admission"],
-        "Emergency": ["emergency", "contact", "medical", "accident", "police", "fire", "ambulance", "hospital", "insurance", "report"],
-        "Miscellaneous": ["miscellaneous", "other", "general", "uncategorized", "unknown", "document", "file", "note", "record", "archive"]
+        "Home": ["lease", "rent", "mortgage", "property", "house", "apartment", "landlord", "tenant", "utility", "maintenance", "real estate", "residence", "homeowner", "rental"],
+        "Vehicle": ["auto", "car", "insurance", "registration", "loan", "vehicle", "vin", "license", "plate", "maintenance", "repair", "truck", "suv", "motor"],
+        "School": ["school", "tuition", "fee", "admission", "exam", "result", "report", "certificate", "diploma", "transcript", "student", "teacher", "class"],
+        "Bank": ["bank", "account", "statement", "loan", "credit", "debit", "transaction", "interest", "balance", "deposit", "withdrawal", "savings", "mortgage"],
+        "Medical": ["health", "medical", "hospital", "prescription", "doctor", "patient", "diagnosis", "treatment", "insurance", "bill", "pharmacy", "medicine"],
+        "College": ["college", "university", "admission", "fee", "scholarship", "exam", "result", "certificate", "transcript", "graduation", "degree", "semester"],
+        "Land": ["land", "property", "deed", "survey", "plot", "ownership", "lease", "rent", "mortgage", "registry", "acre", "title"],
+        "Warranty": ["warranty", "guarantee", "product", "repair", "replacement", "validity", "expiry", "terms", "service", "coverage"],
+        "Family": ["family", "marriage", "birth", "certificate", "divorce", "adoption", "inheritance", "will", "estate", "parent", "child"],
+        "Travel": ["travel", "ticket", "flight", "hotel", "booking", "itinerary", "visa", "passport", "reservation", "tour", "vacation", "trip"],
+        "Business": ["business", "contract", "agreement", "invoice", "tax", "partnership", "license", "permit", "company", "client", "vendor"],
+        "Insurance": ["insurance", "policy", "premium", "claim", "coverage", "health", "life", "vehicle", "property", "renewal", "deductible"],
+        "Education": ["education", "school", "college", "tuition", "fee", "certificate", "diploma", "transcript", "course", "training"],
+        "Emergency": ["emergency", "contact", "medical", "accident", "police", "fire", "ambulance", "hospital", "report", "safety"],
+        "Miscellaneous": ["miscellaneous", "other", "general", "uncategorized", "unknown", "document", "file", "note", "record"]
     ]
     
     // MARK: - Lifecycle
@@ -113,24 +111,33 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelTapped))
         navigationItem.title = isReadOnly ? "Document Details" : "Add Document"
         
-        print("viewDidLoad called, isEditingExistingDocument: \(isEditingExistingDocument), isReadOnly: \(isReadOnly)")
+        // Add "Open" button to the right side
+        let openButton = UIBarButtonItem(title: "Open", style: .plain, target: self, action: #selector(openTapped))
+        if isReadOnly {
+            navigationItem.rightBarButtonItems = [UIBarButtonItem(barButtonSystemItem: .edit, target: self, action: #selector(editTapped)), openButton]
+        } else {
+            navigationItem.rightBarButtonItem = openButton
+        }
         
-        // Handle PDF data if provided
+        print("viewDidLoad called, isEditingExistingDocument: \(isEditingExistingDocument), isReadOnly: \(isReadOnly), pdfData: \(pdfData != nil)")
+        
         if let pdfData = pdfData {
-            // Generate a thumbnail from the first page of the PDF
             if let thumbnail = generateThumbnailFromPDF(data: pdfData) {
+                print("Setting thumbnail to imageView")
                 thumbnailImageView.image = thumbnail
                 isFirstImageSet = true
+                thumbnailImageView.setNeedsDisplay()
+            } else {
+                print("Failed to generate thumbnail")
             }
             if !isEditingExistingDocument {
-                processPDFData(pdfData) // Extract details from PDF
+                processPDFData(pdfData)
             }
-        } else if !selectedImages.isEmpty {
-            // Set thumbnail and process images only for new document or if images are provided
-            thumbnailImageView.image = selectedImages[0]
+        } else if let images = selectedImages, !images.isEmpty {
+            thumbnailImageView.image = images[0]
             isFirstImageSet = true
             if !isEditingExistingDocument {
-                processSelectedImages() // Automatically extract details for new document
+                processSelectedImages()
             }
         }
         
@@ -152,46 +159,57 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
         FavouriteView.layer.borderWidth = 1
         FavouriteView.layer.borderColor = #colorLiteral(red: 0.9129191041, green: 0.9114382863, blue: 0.9338697791, alpha: 0.9029387417)
         
-        // Disable summary table view scroll
         summaryTableView?.isScrollEnabled = false
         
-        // Initialize reminder section
         reminderSwitch?.isOn = false
-        expiryDateLabel?.isHidden = true
         expiryDatePicker?.isHidden = true
+        expiryDateLabel?.isHidden = true
+        expiryDatePicker?.alpha = 0.0
+        expiryDateLabel?.alpha = 0.0
         updateReminderViewHeight()
         
-        // Update UI if editing an existing document or in read-only mode
         if isEditingExistingDocument || isReadOnly {
             updateUIWithExistingDocument()
         }
+        
+        // Keyboard Dismiss Gesture
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        tapGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(tapGesture)
     }
+    
+    @objc private func dismissKeyboard() {
+        view.endEditing(true)
+    }
+
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        print("viewWillAppear called, isEditingExistingDocument: \(isEditingExistingDocument), isReadOnly: \(isReadOnly)")
+        
+        let openButton = UIBarButtonItem(title: "Open", style: .plain, target: self, action: #selector(openTapped))
+        
         if isReadOnly {
-            // Add Edit button on the top right
-            navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .edit, target: self, action: #selector(editTapped))
+            navigationItem.rightBarButtonItems = [
+                openButton, // Rightmost
+                UIBarButtonItem(barButtonSystemItem: .edit, target: self, action: #selector(editTapped)) // Left of Open
+            ]
             configureReadOnlyMode()
         } else {
-            navigationItem.rightBarButtonItem = nil // Remove Edit button if not in read-only mode
+            navigationItem.rightBarButtonItems = [openButton]
         }
     }
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        // Update the scroll view's content size to fit all content
-        let contentHeight = saveButton.isHidden ? (saveButton.frame.minY - 20) : (saveButton.frame.maxY + 20) // Adjust padding based on visibility
+        let contentHeight = saveButton.isHidden ? (saveButton.frame.minY - 20) : (saveButton.frame.maxY + 20)
         AddDocumentScrollView.contentSize = CGSize(width: AddDocumentScrollView.frame.width, height: contentHeight)
-        print("Scroll view content size: \(AddDocumentScrollView.contentSize)")
     }
     
     // MARK: - Setup Methods
     private func setupUI() {
         thumbnailImageView.clipsToBounds = true
         expiryDatePicker?.minimumDate = Date()
-        expiryDatePicker?.isHidden = !(reminderSwitch?.isOn ?? false)
+        expiryDatePicker?.isHidden = true
     }
     
     private func setupTableView() {
@@ -200,7 +218,6 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
         summaryTableView?.rowHeight = UITableView.automaticDimension
         summaryTableView?.estimatedRowHeight = 80
         
-        // Set up dynamic height for summaryTableView
         summaryTableView?.translatesAutoresizingMaskIntoConstraints = false
         tableViewHeightConstraint = summaryTableView?.heightAnchor.constraint(equalToConstant: 0)
         tableViewHeightConstraint?.isActive = true
@@ -211,102 +228,67 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
         let rowHeight: CGFloat = 51.5
         let totalHeight = (CGFloat(summaryData.count) * rowHeight) + 40
         tableViewHeightConstraint?.constant = totalHeight
-        summaryTableView?.reloadData() // Ensure table view refreshes
+        summaryTableView?.reloadData()
         summaryTableView?.layoutIfNeeded()
-        print("Updated summaryTableView height to: \(totalHeight)")
     }
     
     // MARK: - Actions
     @IBAction func reminderSwitchToggled(_ sender: UISwitch?) {
-        guard !isReadOnly else { return } // Prevent toggling in read-only mode
         let isOn = sender?.isOn ?? false
-        
-        // Animate the height change and visibility
-        UIView.animate(withDuration: 0.3, animations: {
-            // Update visibility and alpha for fade effect
+        UIView.animate(withDuration: 0.3) {
             self.expiryDatePicker?.isHidden = !isOn
             self.expiryDateLabel?.isHidden = !isOn
             self.expiryDatePicker?.alpha = isOn ? 1.0 : 0.0
             self.expiryDateLabel?.alpha = isOn ? 1.0 : 0.0
-            
-            // Update height
             self.updateReminderViewHeight()
-            
-            // Apply the layout changes
             self.view.layoutIfNeeded()
-        })
+        }
     }
     
     private func updateReminderViewHeight() {
-        let newHeight: CGFloat = (reminderSwitch?.isOn ?? false) ? 107.0 : 50.0 // Fixed heights as specified
+        let newHeight: CGFloat = (reminderSwitch?.isOn ?? false) ? 107.0 : 50.0
         reminderViewHeightConstraint?.constant = newHeight
-        print("Updated ReminderView height to: \(newHeight)")
     }
     
     @objc func editTapped() {
-        print("Edit button tapped")
         isReadOnly = false
         navigationItem.title = "Edit Document"
-        navigationItem.rightBarButtonItem = nil // Remove Edit button
+        navigationItem.rightBarButtonItems = [UIBarButtonItem(title: "Open", style: .plain, target: self, action: #selector(openTapped))]
         configureEditableMode()
     }
     
+    @objc func openTapped() {
+        guard let pdfDataToView = pdfData ?? createPDFFromImages() else {
+            showAlert(title: "Error", message: "No PDF data available to open.")
+            return
+        }
+        
+        let previewController = QLPreviewController()
+        previewController.dataSource = self
+        previewController.delegate = self
+        previewController.navigationItem.title = nameTextField?.text ?? existingDocument?.name ?? "Document"
+        
+        previewController.modalPresentationStyle = .fullScreen
+        present(previewController, animated: true, completion: nil)
+    }
+    
     private func configureEditableMode() {
-        print("Configuring editable mode")
-        
-        // Enable text fields
-        if let nameTextField = nameTextField {
-            nameTextField.isEnabled = true
-            nameTextField.isUserInteractionEnabled = true
-        } else {
-            print("Warning: nameTextField is nil")
+        nameTextField?.isEnabled = true
+        nameTextField?.isUserInteractionEnabled = true
+        reminderSwitch?.isEnabled = true
+        reminderSwitch?.isUserInteractionEnabled = true
+        favoriteSwitch?.isEnabled = true
+        favoriteSwitch?.isUserInteractionEnabled = true
+        categoryButton?.isEnabled = true
+        categoryButton?.isUserInteractionEnabled = true
+        expiryDatePicker?.isUserInteractionEnabled = true
+        saveButton?.isHidden = false
+        if let heightConstraint = saveButton?.constraints.first(where: { $0.firstAttribute == .height }) {
+            heightConstraint.constant = 44
         }
-        
-        // Enable switches
-        if let reminderSwitch = reminderSwitch {
-            reminderSwitch.isEnabled = true
-            reminderSwitch.isUserInteractionEnabled = true
-        } else {
-            print("Warning: reminderSwitch is nil")
-        }
-        
-        if let favoriteSwitch = favoriteSwitch {
-            favoriteSwitch.isEnabled = true
-            favoriteSwitch.isUserInteractionEnabled = true
-        } else {
-            print("Warning: favoriteSwitch is nil")
-        }
-        
-        // Enable category button
-        if let categoryButton = categoryButton {
-            categoryButton.isEnabled = true
-            categoryButton.isUserInteractionEnabled = true
-        } else {
-            print("Warning: categoryButton is nil")
-        }
-        
-        // Enable expiry date picker
-        if let expiryDatePicker = expiryDatePicker {
-            expiryDatePicker.isUserInteractionEnabled = true
-        } else {
-            print("Warning: expiryDatePicker is nil")
-        }
-        
-        // Show save button and adjust layout
-        if let saveButton = saveButton {
-            saveButton.isHidden = false
-            // Restore the height constraint
-            if let heightConstraint = saveButton.constraints.first(where: { $0.firstAttribute == .height }) {
-                heightConstraint.constant = 44 // Adjust to your button's default height
-            }
-            view.setNeedsLayout()
-            view.layoutIfNeeded()
-        } else {
-            print("Warning: saveButton is nil")
-        }
-        
-        // Enable summary table view cells
-        summaryTableView?.reloadData() // This will reconfigure cells to be editable
+        view.setNeedsLayout()
+        view.layoutIfNeeded()
+        summaryTableView?.reloadData()
     }
     
     // MARK: - Automatic Document Processing
@@ -317,13 +299,12 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
     }
     
     private func extractDocumentDetails(completion: @escaping () -> Void) {
-        guard !selectedImages.isEmpty else { return }
+        guard let images = selectedImages, !images.isEmpty else { return }
         
         var extractedText = ""
         let dispatchGroup = DispatchGroup()
         
-        // OCR Processing
-        for image in selectedImages {
+        for image in images {
             dispatchGroup.enter()
             recognizeTextFrom(image: image) { text in
                 extractedText += "\(text)\n"
@@ -333,186 +314,377 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
         
         dispatchGroup.notify(queue: .main) { [weak self] in
             guard let self else { return }
-            
-            // 1. Extract Document Name
             self.nameTextField?.text = self.extractDocumentName(from: extractedText)
-            
-            // 2. Extract Summary
             self.summaryData = self.extractKeyValuePairs(from: extractedText)
-            
-            // 3. Determine Category
-            self.selectedCategories = [self.detectCategory(from: extractedText)]
-            self.categoryButton?.setTitle(self.selectedCategories.first?.name ?? "Select Category", for: .normal)
-            
-            // 4. Set Expiry & Reminder
+            self.selectedCategories = self.detectCategories(from: extractedText)
+            let categoryNames = self.selectedCategories.compactMap { $0.name }.joined(separator: ", ")
+            self.categoryButton?.setTitle(categoryNames.isEmpty ? "Select Categories" : categoryNames, for: .normal)
             self.setExpiryAndReminder(from: extractedText)
-            
             self.summaryTableView?.reloadData()
-            self.updateTableViewHeight() // Update table view height after reloading data
-            self.updateReminderViewHeight() // Ensure reminder view height is updated
+            self.updateTableViewHeight()
+            self.updateReminderViewHeight()
             completion()
         }
     }
     
     // MARK: - PDF Processing
     private func processPDFData(_ pdfData: Data) {
-        guard let pdfDocument = PDFDocument(data: pdfData) else { return }
-        var extractedText = ""
+        guard let pdfDocument = PDFDocument(data: pdfData) else {
+            print("Failed to create PDFDocument from data")
+            showAlert(title: "Error", message: "Unable to process the PDF file.")
+            return
+        }
         
+        var extractedText = ""
+        let dispatchGroup = DispatchGroup()
+        
+        // Step 1: Try extracting text using PDFKit
         for pageNum in 0..<pdfDocument.pageCount {
             if let page = pdfDocument.page(at: pageNum) {
-                extractedText += page.string ?? ""
+                if let pageText = page.string?.trimmingCharacters(in: .whitespacesAndNewlines), !pageText.isEmpty {
+                    extractedText += pageText + "\n"
+                }
             }
         }
         
-        nameTextField?.text = extractDocumentName(from: extractedText)
-        summaryData = extractKeyValuePairs(from: extractedText)
-        selectedCategories = [detectCategory(from: extractedText)]
-        categoryButton?.setTitle(selectedCategories.first?.name ?? "Select Category", for: .normal)
-        setExpiryAndReminder(from: extractedText)
+        // Step 2: If no text or insufficient text, use OCR
+        if extractedText.isEmpty || extractedText.count < 20 {
+            print("Insufficient text from PDFKit (\(extractedText.count) characters), using OCR")
+            for pageNum in 0..<min(pdfDocument.pageCount, 2) { // Limit to first 2 pages
+                dispatchGroup.enter()
+                if let page = pdfDocument.page(at: pageNum) {
+                    if let pageImage = generateImageFromPDFPage(page) {
+                        recognizeTextFrom(image: pageImage) { text in
+                            extractedText += text + "\n"
+                            dispatchGroup.leave()
+                        }
+                    } else {
+                        dispatchGroup.leave()
+                    }
+                } else {
+                    dispatchGroup.leave()
+                }
+            }
+        } else {
+            print("Text extracted via PDFKit: \(extractedText)")
+        }
         
-        summaryTableView?.reloadData()
-        updateTableViewHeight()
-        updateReminderViewHeight()
+        dispatchGroup.notify(queue: .main) { [weak self] in
+            guard let self else { return }
+            if extractedText.isEmpty {
+                print("No text extracted from PDF")
+                self.showAlert(title: "Warning", message: "Unable to extract text from the PDF. Please fill in the details manually.")
+                self.nameTextField?.text = "Untitled Document"
+                self.summaryData = [:]
+                self.selectedCategories = []
+                self.categoryButton?.setTitle("Select Categories", for: .normal)
+                self.reminderSwitch?.isOn = false
+                self.expiryDatePicker?.isHidden = true
+                self.expiryDateLabel?.isHidden = true
+            } else {
+                self.nameTextField?.text = self.extractDocumentName(from: extractedText)
+                self.summaryData = self.extractKeyValuePairs(from: extractedText)
+                self.selectedCategories = self.detectCategories(from: extractedText)
+                let categoryNames = self.selectedCategories.compactMap { $0.name }.joined(separator: ", ")
+                self.categoryButton?.setTitle(categoryNames.isEmpty ? "Select Categories" : categoryNames, for: .normal)
+                self.setExpiryAndReminder(from: extractedText)
+            }
+            self.summaryTableView?.reloadData()
+            self.updateTableViewHeight()
+            self.updateReminderViewHeight()
+        }
     }
     
-    // Generate thumbnail from PDF
-    private func generateThumbnailFromPDF(data: Data) -> UIImage? {
-        guard let pdfDocument = CGPDFDocument(CGDataProvider(data: data as CFData)!) else { return nil }
-        guard let page = pdfDocument.page(at: 1) else { return nil } // Page numbers are 1-based
+    // Generate image from a PDF page with correct orientation
+    private func generateImageFromPDFPage(_ page: PDFPage) -> UIImage? {
+        let pageRect = page.bounds(for: .mediaBox)
+        let scale: CGFloat = 2.0 // Increase resolution for better OCR
+        let rendererSize = CGSize(width: pageRect.width * scale, height: pageRect.height * scale)
+        let renderer = UIGraphicsImageRenderer(size: rendererSize)
         
-        let pageRect = page.getBoxRect(.mediaBox) // Use getBoxRect to get the page's bounding box
-        let renderer = UIGraphicsImageRenderer(size: CGSize(width: 612, height: 792)) // Standard PDF page size
-        let thumbnail = renderer.image { ctx in
+        let image = renderer.image { ctx in
+            ctx.cgContext.saveGState()
             UIColor.white.setFill()
-            ctx.fill(pageRect)
-            ctx.cgContext.translateBy(x: 0, y: pageRect.height)
-            ctx.cgContext.scaleBy(x: 1.0, y: -1.0)
-            ctx.cgContext.drawPDFPage(page)
+            ctx.fill(CGRect(origin: .zero, size: rendererSize))
+            
+            // Adjust for PDF coordinate system (origin at bottom-left)
+            ctx.cgContext.translateBy(x: 0, y: rendererSize.height)
+            ctx.cgContext.scaleBy(x: scale, y: -scale) // Flip vertically and scale
+            page.draw(with: .mediaBox, to: ctx.cgContext)
+            ctx.cgContext.restoreGState()
         }
+        
+        return image
+    }
+    
+    // Generate thumbnail from PDF with correct orientation
+    private func generateThumbnailFromPDF(data: Data) -> UIImage? {
+        guard let pdfDocument = PDFDocument(data: data),
+              let page = pdfDocument.page(at: 0) else {
+            print("Failed to create PDFDocument or get first page for thumbnail")
+            return nil
+        }
+        
+        let pageRect = page.bounds(for: .mediaBox)
+        let scale: CGFloat = 1.0 // Thumbnail doesn't need high resolution
+        let rendererSize = CGSize(width: pageRect.width * scale, height: pageRect.height * scale)
+        let renderer = UIGraphicsImageRenderer(size: rendererSize)
+        
+        let thumbnail = renderer.image { ctx in
+            ctx.cgContext.saveGState()
+            UIColor.white.setFill()
+            ctx.fill(CGRect(origin: .zero, size: rendererSize))
+            
+            // Adjust for PDF coordinate system
+            ctx.cgContext.translateBy(x: 0, y: rendererSize.height)
+            ctx.cgContext.scaleBy(x: scale, y: -scale) // Flip vertically
+            page.draw(with: .mediaBox, to: ctx.cgContext)
+            ctx.cgContext.restoreGState()
+        }
+        
+        print("Thumbnail generated with size: \(thumbnail.size)")
         return thumbnail
     }
     
     func updateUIWithExistingDocument() {
-        print("Updating UI with existing document, selectedImages count: \(selectedImages.count), summaryData: \(summaryData)")
-        
-        // Set thumbnail
-        if !selectedImages.isEmpty {
-            thumbnailImageView.image = selectedImages[0]
+        // Safely handle selectedImages being nil or empty
+        if let images = selectedImages, !images.isEmpty {
+            thumbnailImageView.image = images[0]
+        } else {
+            // Fallback: Use existing thumbnail or leave blank if none
+            if let thumbnailData = existingDocument?.thumbnail,
+               let thumbnailImage = UIImage(data: thumbnailData) {
+                thumbnailImageView.image = thumbnailImage
+            } else {
+                thumbnailImageView.image = nil // Or set a placeholder image
+            }
         }
         
-        // Update summary table
         summaryTableView?.reloadData()
         updateTableViewHeight()
         
-        // Update category
-        categoryButton?.setTitle(selectedCategories.first?.name ?? "Select Category", for: .normal)
+        let categoryNames = selectedCategories.compactMap { $0.name }.joined(separator: ", ")
+        categoryButton?.setTitle(categoryNames.isEmpty ? "Select Categories" : categoryNames, for: .normal)
         
-        // Update reminder and expiry date
-        if let expiryDate = expiryDatePicker?.date, reminderSwitch?.isOn == true {
+        if let expiryDate = existingDocument?.expiryDate {
+            reminderSwitch?.isOn = true
             expiryDatePicker?.date = expiryDate
             expiryDatePicker?.isHidden = false
             expiryDateLabel?.isHidden = false
-            UIView.animate(withDuration: 0.3) {
-                self.expiryDatePicker?.alpha = 1.0
-                self.expiryDateLabel?.alpha = 1.0
-                self.updateReminderViewHeight()
-                self.view.layoutIfNeeded()
-            }
         } else {
             reminderSwitch?.isOn = false
             expiryDatePicker?.isHidden = true
             expiryDateLabel?.isHidden = true
-            updateReminderViewHeight()
+        }
+        
+        UIView.animate(withDuration: 0.3) {
+            self.expiryDatePicker?.alpha = self.reminderSwitch?.isOn ?? false ? 1.0 : 0.0
+            self.expiryDateLabel?.alpha = self.reminderSwitch?.isOn ?? false ? 1.0 : 0.0
+            self.updateReminderViewHeight()
+            self.view.layoutIfNeeded()
         }
     }
     
     private func updateUIWithExtractedData() {
         summaryTableView?.reloadData()
-        categoryButton?.setTitle(selectedCategories.first?.name ?? "Select Category", for: .normal)
-        updateTableViewHeight() // Ensure height updates after UI changes
-        updateReminderViewHeight() // Ensure reminder view height is updated
+        let categoryNames = selectedCategories.compactMap { $0.name }.joined(separator: ", ")
+        categoryButton?.setTitle(categoryNames.isEmpty ? "Select Categories" : categoryNames, for: .normal)
+        updateTableViewHeight()
+        updateReminderViewHeight()
     }
     
     // MARK: - Helper Methods
     private func extractDocumentName(from text: String) -> String {
-        let lines = text.components(separatedBy: .newlines)
-        if let titleLine = lines.first(where: { $0.lowercased().contains("title:") }) {
-            return titleLine.replacingOccurrences(of: "title:", with: "").trimmingCharacters(in: .whitespaces)
+        let lines = text.components(separatedBy: .newlines).filter { !$0.isEmpty }
+        
+        if let titleLine = lines.first(where: { $0.lowercased().contains("title:") || $0.lowercased().contains("document:") }) {
+            return titleLine
+                .replacingOccurrences(of: "title:", with: "", options: .caseInsensitive)
+                .replacingOccurrences(of: "document:", with: "", options: .caseInsensitive)
+                .trimmingCharacters(in: .whitespacesAndNewlines)
         }
-        return lines.first(where: { !$0.isEmpty }) ?? "Document \(Date().formatted(.dateTime.day().month().year()))"
+        
+        let documentTypes = ["invoice", "contract", "warranty", "receipt", "agreement", "policy", "certificate"]
+        if let firstLine = lines.first {
+            for docType in documentTypes {
+                if firstLine.lowercased().contains(docType) {
+                    return docType.capitalized
+                }
+            }
+        }
+        
+        let fallback = lines.first ?? "Document \(Date().formatted(.dateTime.day().month().year()))"
+        return String(fallback.prefix(50)).trimmingCharacters(in: .whitespacesAndNewlines)
     }
     
     private func extractKeyValuePairs(from text: String) -> [String: String] {
-        let pattern = "([A-Za-z ]+):\\s*(.*)"
+        let pattern = "([A-Za-z ]+):\\s*([^\\n]+)"
         let regex = try? NSRegularExpression(pattern: pattern)
         var pairs = [String: String]()
         
-        text.enumerateLines { line, _ in
+        let lines = text.components(separatedBy: .newlines)
+        for line in lines {
             guard let match = regex?.firstMatch(in: line, range: NSRange(location: 0, length: line.utf16.count)),
                   let keyRange = Range(match.range(at: 1), in: line),
-                  let valueRange = Range(match.range(at: 2), in: line) else { return }
+                  let valueRange = Range(match.range(at: 2), in: line) else { continue }
             
             let key = String(line[keyRange]).trimmingCharacters(in: .whitespaces)
             let value = String(line[valueRange]).trimmingCharacters(in: .whitespaces)
             
-            if !key.isEmpty && !value.isEmpty {
+            if !key.isEmpty && !value.isEmpty && key.count <= 30 && value.count <= 100 {
                 pairs[key] = value
             }
         }
+        
         return pairs
     }
     
-    private func detectCategory(from text: String) -> Category {
+    private func detectCategories(from text: String) -> [Category] {
         let lowerText = text.lowercased()
+        var categoryScores: [String: Int] = [:]
         
         for (categoryName, keywords) in categoryKeywords {
-            if keywords.contains(where: { lowerText.contains($0) }) {
-                return CoreDataManager.shared.fetchCategories().first { $0.name == categoryName }!
+            let matches = keywords.filter { lowerText.contains($0) }.count
+            if matches > 0 {
+                categoryScores[categoryName] = matches
             }
         }
         
-        // Fallback to Miscellaneous
-        return CoreDataManager.shared.fetchCategories().first { $0.name == "Miscellaneous" }!
+        let threshold = 1
+        let qualifyingCategories = categoryScores.filter { $0.value >= threshold }
+        
+        let allCategories = CoreDataManager.shared.fetchCategories()
+        var selectedCategories = allCategories.filter { qualifyingCategories.keys.contains($0.name ?? "") }
+        
+        if selectedCategories.isEmpty {
+            if let miscCategory = allCategories.first(where: { $0.name == "Miscellaneous" }) {
+                return [miscCategory]
+            }
+        }
+        
+        selectedCategories.sort { (categoryScores[$0.name ?? ""] ?? 0) > (categoryScores[$1.name ?? ""] ?? 0) }
+        return Array(selectedCategories.prefix(2))
     }
     
     private func setExpiryAndReminder(from text: String) {
         let dates = detectDates(in: text)
-        let expiryDate = dates.last ?? Calendar.current.date(byAdding: .year, value: 1, to: Date())!
+        print("Extracted Text for Date Detection: \(text)")
+        print("Detected Dates: \(dates)")
         
-        // Set reminder 1 month before expiry
-        let reminderDate = Calendar.current.date(byAdding: .month, value: -1, to: expiryDate)!
+        if let expiryDate = dates.last { // Use the last detected date as expiry
+            print("Setting expiry date to: \(expiryDate)")
+            reminderSwitch?.isOn = true
+            expiryDatePicker?.date = expiryDate
+            expiryDatePicker?.isHidden = false
+            expiryDateLabel?.isHidden = false
+        } else {
+            print("No expiry date detected, turning switch off")
+            reminderSwitch?.isOn = false
+            expiryDatePicker?.isHidden = true
+            expiryDateLabel?.isHidden = true
+        }
         
-        expiryDatePicker?.date = expiryDate
-        reminderSwitch?.isOn = true
-        expiryDatePicker?.isHidden = false
-        expiryDateLabel?.isHidden = false
-        // Animate the transition since this changes the state
-        UIView.animate(withDuration: 0.3, animations: {
-            self.expiryDatePicker?.alpha = 1.0
-            self.expiryDateLabel?.alpha = 1.0
+        UIView.animate(withDuration: 0.3) {
+            self.expiryDatePicker?.alpha = self.reminderSwitch?.isOn ?? false ? 1.0 : 0.0
+            self.expiryDateLabel?.alpha = self.reminderSwitch?.isOn ?? false ? 1.0 : 0.0
             self.updateReminderViewHeight()
             self.view.layoutIfNeeded()
-        })
+        }
     }
     
     private func detectDates(in text: String) -> [Date] {
         let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.date.rawValue)
-        var dates = [Date]()
+        var expiryDates: [Date] = [] // Dates associated with expiry keywords
+        var allDates: [Date] = []   // All detected dates (for fallback)
+        let now = Date()
+        
+        // Expanded list of expiry-related keywords
+        let expiryKeywords = [
+            "expiry", "expiration", "valid until", "due date", "expires on", "end date",
+            "valid thru", "valid through", "expires", "due", "validity", "term ends",
+            "renew by", "expiration date", "good until", "use by", "valid till", "valid until", "exp", "renewal"
+        ]
+        
+        print("Searching for dates in text with \(expiryKeywords.count) keywords")
         
         detector?.enumerateMatches(in: text, options: [], range: NSRange(location: 0, length: text.utf16.count)) { match, _, _ in
-            guard let date = match?.date else { return }
-            dates.append(date)
+            guard let date = match?.date else {
+                print("No date found in match")
+                return
+            }
+            
+            // Log all detected dates for debugging
+            print("Found date: \(date) at range: \(match?.range ?? NSRange())")
+            
+            // Allow dates up to 30 days in the past
+            let daysPastThreshold = -30
+            guard let thresholdDate = Calendar.current.date(byAdding: .day, value: daysPastThreshold, to: now) else {
+                print("Failed to calculate threshold date")
+                return
+            }
+            if date < thresholdDate {
+                print("Filtered out date \(date) as it's too far in the past")
+                return
+            }
+            
+            // Add to allDates regardless of keyword association
+            allDates.append(date)
+            
+            // Check for expiry-related keywords in a wider context
+            let range = match?.range ?? NSRange()
+            let start = max(0, range.location - 100)
+            let length = min(text.utf16.count - start, range.length + 200)
+            let contextRange = NSRange(location: start, length: length)
+            
+            if let contextRangeInString = Range(contextRange, in: text) {
+                let context = String(text[contextRangeInString]).lowercased()
+                let hasExpiryKeyword = expiryKeywords.contains { context.contains($0) }
+                
+                print("Context for date \(date): \(context)")
+                if hasExpiryKeyword {
+                    print("Date \(date) is associated with an expiry keyword")
+                    expiryDates.append(date)
+                } else {
+                    print("Date \(date) ignored for expiry, no expiry keyword found in context")
+                }
+            } else {
+                print("Failed to extract context for date \(date)")
+            }
         }
         
-        return dates.sorted()
+        // Decide which list to use
+        let finalDates: [Date]
+        if !expiryDates.isEmpty {
+            // If we found dates with expiry keywords, use them and pick the last one
+            finalDates = expiryDates.sorted()
+            print("Using expiry keyword-associated dates: \(finalDates)")
+        } else {
+            // Fallback: Use all detected dates and pick the last future date
+            let futureDates = allDates.filter { $0 > now }
+            finalDates = futureDates.isEmpty ? allDates.sorted() : futureDates.sorted()
+            print("No expiry keyword-associated dates found, falling back to: \(finalDates)")
+        }
+        
+        print("Final detected dates: \(finalDates)")
+        return finalDates
     }
     
     private func recognizeTextFrom(image: UIImage, completion: @escaping (String) -> Void) {
-        guard let cgImage = image.cgImage else { return }
+        guard let cgImage = image.cgImage else {
+            print("Failed to get CGImage from UIImage")
+            completion("")
+            return
+        }
         
         let request = VNRecognizeTextRequest { request, error in
+            if let error = error {
+                print("OCR Error: \(error)")
+                completion("")
+                return
+            }
+            
             guard let observations = request.results as? [VNRecognizedTextObservation] else {
+                print("No text observations found")
                 completion("")
                 return
             }
@@ -521,26 +693,40 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
                 observation.topCandidates(1).first?.string
             }.joined(separator: "\n")
             
+            print("OCR Extracted Text: \(text)")
             completion(text)
         }
         
+        // Enhanced OCR settings for date detection
         request.recognitionLevel = .accurate
-        let handler = VNImageRequestHandler(cgImage: cgImage)
-        try? handler.perform([request])
+        request.usesLanguageCorrection = true
+        request.recognitionLanguages = ["en-US"]
+        request.customWords = [
+            "expiry", "expiration", "valid until", "due date", "expires on", "end date",
+            "valid thru", "valid through", "expires", "due", "validity", "term ends",
+            "renew by", "expiration date", "good until", "use by",
+            "january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december",
+            "jan", "feb", "mar", "apr", "jun", "jul", "aug", "sep", "oct", "nov", "dec"
+        ]
+        
+        let handler = VNImageRequestHandler(cgImage: cgImage, orientation: .up)
+        do {
+            try handler.perform([request])
+        } catch {
+            print("Failed to perform OCR: \(error)")
+            completion("")
+        }
     }
     
     // MARK: - Save Document
     @IBAction func saveTapped(_ sender: UIButton) {
         guard !isReadOnly, validateInputs() else { return }
         
-        let pdfDataToSave = pdfData ?? createPDFFromImages() // Use provided PDF data if available, otherwise create from images
+        let pdfDataToSave = pdfData ?? createPDFFromImages()
         let thumbnailData = thumbnailImageView.image?.jpegData(compressionQuality: 0.7)
         let summaryJSON = try? JSONSerialization.data(withJSONObject: summaryData)
         
-        print("Saving document with summaryData: \(summaryData)")
-        
         if isEditingExistingDocument, let document = existingDocument {
-            // Update existing document
             document.name = nameTextField?.text ?? ""
             document.summaryData = summaryJSON
             document.expiryDate = reminderSwitch?.isOn == true ? expiryDatePicker?.date : nil
@@ -551,12 +737,8 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
             document.categories = NSSet(array: selectedCategories)
             
             CoreDataManager.shared.saveContext()
-            print("Updated existing document: \(document.name ?? "Unnamed")")
-            
-            // Notify delegate before dismissal
             delegate?.didUpdateDocument()
         } else {
-            // Create new document
             let document = CoreDataManager.shared.createDocument(
                 name: nameTextField?.text ?? "",
                 summaryData: summaryJSON,
@@ -570,13 +752,9 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
             )
             
             CoreDataManager.shared.saveContext()
-            print("Created new document: \(document.name ?? "Unnamed")")
-            
-            // Notify delegate before dismissal (if applicable for new documents)
             delegate?.didUpdateDocument()
         }
         
-        // Dismiss the navigation controller and show success notification
         if let navController = self.navigationController {
             navController.dismiss(animated: true) {
                 self.showSuccessNotification()
@@ -594,7 +772,7 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
             return false
         }
         
-        guard !selectedImages.isEmpty || pdfData != nil else {
+        guard selectedImages != nil || pdfData != nil else {
             showAlert(title: "No Content", message: "Please select at least one image or a PDF")
             return false
         }
@@ -608,11 +786,13 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
     }
     
     private func createPDFFromImages() -> Data? {
+        guard let images = selectedImages, !images.isEmpty else { return nil }
+        
         let pdfData = NSMutableData()
         let bounds = CGRect(x: 0, y: 0, width: 612, height: 792)
         
         UIGraphicsBeginPDFContextToData(pdfData, bounds, nil)
-        for image in selectedImages {
+        for image in images {
             UIGraphicsBeginPDFPageWithInfo(bounds, nil)
             let aspectRatio = image.size.width / image.size.height
             let scaledBounds = bounds.width / bounds.height > aspectRatio ?
@@ -631,60 +811,46 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
     }
     
     private func showSuccessNotification() {
-        print("Attempting to show success notification")
-        
-        // Find the root view controller (likely HomeViewController)
         var targetViewController: UIViewController? = presentingViewController
         while let navController = targetViewController as? UINavigationController {
             targetViewController = navController.viewControllers.first
         }
         
-        // If presentingViewController is nil (after dismissal), find the root view controller via the window
         if targetViewController == nil, let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
            let rootVC = windowScene.windows.first?.rootViewController {
             targetViewController = rootVC
         }
         
-        guard let targetVC = targetViewController else {
-            print("No valid view controller found to present the notification")
-            return
-        }
+        guard let targetVC = targetViewController else { return }
         
-        // Get the safe area top inset to position the notification below the Dynamic Island/status bar
         let safeAreaTopInset = targetVC.view.safeAreaInsets.top
         let notificationHeight: CGFloat = 60
-        let startYPosition = -notificationHeight // Start off-screen
-        let finalYPosition = safeAreaTopInset // Position just below the safe area
+        let startYPosition = -notificationHeight
+        let finalYPosition = safeAreaTopInset
         
-        // Create the notification view
         let notificationView = UIView(frame: CGRect(x: 0, y: startYPosition, width: targetVC.view.bounds.width, height: notificationHeight))
         notificationView.backgroundColor = #colorLiteral(red: 0.09803921569, green: 0.7764705882, blue: 0.3450980392, alpha: 0.804816846)
         
-        // Add checkmark image
         let checkmarkImage = UIImage(systemName: "checkmark.circle")?.withTintColor(.white, renderingMode: .alwaysOriginal)
         let checkmarkView = UIImageView(image: checkmarkImage)
         checkmarkView.frame = CGRect(x: 10, y: 10, width: 40, height: 40)
         notificationView.addSubview(checkmarkView)
         
-        // Add message label
         let messageLabel = UILabel(frame: CGRect(x: 60, y: 10, width: notificationView.bounds.width - 70, height: 40))
         messageLabel.text = isEditingExistingDocument ? "File updated successfully!" : "File added successfully!"
         messageLabel.textColor = .white
         messageLabel.font = .systemFont(ofSize: 18, weight: .semibold)
         notificationView.addSubview(messageLabel)
         
-        // Add notification view to the target view controller's view
         targetVC.view.addSubview(notificationView)
         
-        // Animate the notification to slide in
         UIView.animate(withDuration: 0.3, animations: {
-            notificationView.frame.origin.y = finalYPosition // Slide down to just below the safe area
+            notificationView.frame.origin.y = finalYPosition
         }) { _ in
-            // Schedule the fade out and removal after 4 seconds
             DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
                 UIView.animate(withDuration: 0.3, animations: {
                     notificationView.alpha = 0
-                    notificationView.frame.origin.y = startYPosition // Slide back up
+                    notificationView.frame.origin.y = startYPosition
                 }) { _ in
                     notificationView.removeFromSuperview()
                 }
@@ -716,13 +882,8 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
             cell.ColonLabel.text = ":"
             cell.KeyTextField.text = key
             cell.ValueTextField.text = summaryData[key]
-            if isReadOnly {
-                cell.KeyTextField.isEnabled = false
-                cell.ValueTextField.isEnabled = false
-            } else {
-                cell.KeyTextField.isEnabled = true
-                cell.ValueTextField.isEnabled = true
-            }
+            cell.KeyTextField.isEnabled = !isReadOnly
+            cell.ValueTextField.isEnabled = !isReadOnly
         }
         
         return cell
@@ -730,20 +891,19 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
     
     // MARK: - KeyValueCellDelegate
     func didUpdateKeyValue(key: String?, value: String?, at index: Int) {
-        guard !isReadOnly else { return } // Prevent updates in read-only mode
-        guard let key = key, !key.isEmpty, let value = value, !value.isEmpty else { return }
+        guard !isReadOnly, let key = key, !key.isEmpty, let value = value, !value.isEmpty else { return }
         if index < summaryData.count {
             let oldKey = Array(summaryData.keys)[index]
             summaryData.removeValue(forKey: oldKey)
         }
         summaryData[key] = value
         summaryTableView?.reloadData()
-        updateTableViewHeight() // Update height after modifying summaryData
+        updateTableViewHeight()
     }
     
     // MARK: - Category Selection
     @IBAction func selectCategoryTapped(_ sender: UIButton?) {
-        guard !isReadOnly else { return } // Prevent category selection in read-only mode
+        guard !isReadOnly else { return }
         let categories = CoreDataManager.shared.fetchCategories()
         let categoryVC = CategorySelectionViewController(categories: categories, selectedCategories: selectedCategories)
         categoryVC.delegate = self
@@ -753,62 +913,21 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
     
     // MARK: - Read-Only Mode Configuration
     private func configureReadOnlyMode() {
-        print("Configuring read-only mode, isReadOnly: \(isReadOnly)")
-        
-        // Disable text fields
-        if let nameTextField = nameTextField {
-            nameTextField.isEnabled = false
-            nameTextField.isUserInteractionEnabled = false
-        } else {
-            print("Warning: nameTextField is nil")
+        nameTextField?.isEnabled = false
+        nameTextField?.isUserInteractionEnabled = false
+        reminderSwitch?.isEnabled = false
+        reminderSwitch?.isUserInteractionEnabled = false
+        favoriteSwitch?.isEnabled = false
+        favoriteSwitch?.isUserInteractionEnabled = false
+        categoryButton?.isEnabled = false
+        categoryButton?.isUserInteractionEnabled = false
+        expiryDatePicker?.isUserInteractionEnabled = false
+        saveButton?.isHidden = true
+        if let heightConstraint = saveButton?.constraints.first(where: { $0.firstAttribute == .height }) {
+            heightConstraint.constant = 0
         }
-        
-        // Disable switches
-        if let reminderSwitch = reminderSwitch {
-            reminderSwitch.isEnabled = false
-            reminderSwitch.isUserInteractionEnabled = false
-        } else {
-            print("Warning: reminderSwitch is nil")
-        }
-        
-        if let favoriteSwitch = favoriteSwitch {
-            favoriteSwitch.isEnabled = false
-            favoriteSwitch.isUserInteractionEnabled = false
-        } else {
-            print("Warning: favoriteSwitch is nil")
-        }
-        
-        // Disable category button
-        if let categoryButton = categoryButton {
-            categoryButton.isEnabled = false
-            categoryButton.isUserInteractionEnabled = false
-        } else {
-            print("Warning: categoryButton is nil")
-        }
-        
-        // Disable expiry date picker
-        if let expiryDatePicker = expiryDatePicker {
-            expiryDatePicker.isUserInteractionEnabled = false
-        } else {
-            print("Warning: expiryDatePicker is nil")
-        }
-        
-        // Hide save button and adjust layout
-        if let saveButton = saveButton {
-            saveButton.isHidden = true
-            // Find or create a height constraint to collapse the button
-            if let heightConstraint = saveButton.constraints.first(where: { $0.firstAttribute == .height }) {
-                heightConstraint.constant = 0
-            } else {
-                saveButton.addConstraint(NSLayoutConstraint(item: saveButton, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: 0))
-            }
-            view.setNeedsLayout()
-            view.layoutIfNeeded()
-        } else {
-            print("Warning: saveButton is nil")
-        }
-        
-        // Reload table view to disable cells
+        view.setNeedsLayout()
+        view.layoutIfNeeded()
         summaryTableView?.reloadData()
     }
 }
@@ -816,9 +935,38 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
 // MARK: - CategorySelectionDelegate
 extension AddDocumentViewController: CategorySelectionDelegate {
     func didSelectCategories(_ categories: [Category]) {
-        guard !isReadOnly else { return } // Prevent category updates in read-only mode
+        guard !isReadOnly else { return }
         selectedCategories = categories
         let categoryNames = categories.compactMap { $0.name }.joined(separator: ", ")
         categoryButton?.setTitle(categoryNames.isEmpty ? "Select Categories" : categoryNames, for: .normal)
+    }
+}
+
+// MARK: - QLPreviewControllerDataSource & Delegate
+extension AddDocumentViewController: QLPreviewControllerDataSource, QLPreviewControllerDelegate {
+    func numberOfPreviewItems(in controller: QLPreviewController) -> Int {
+        return 1
+    }
+    
+    func previewController(_ controller: QLPreviewController, previewItemAt index: Int) -> QLPreviewItem {
+        guard let pdfData = pdfData ?? createPDFFromImages() else {
+            fatalError("PDF data is unexpectedly nil after validation.")
+        }
+        
+        // Use the document name for the file, falling back to "Document" if nil
+        let documentName = (nameTextField?.text ?? existingDocument?.name ?? "Document").replacingOccurrences(of: "/", with: "_") // Avoid invalid characters
+        let fileName = "\(documentName).pdf"
+        let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(fileName)
+        
+        try? pdfData.write(to: url)
+        return url as QLPreviewItem
+    }
+    
+    func previewControllerDidDismiss(_ controller: QLPreviewController) {
+        let documentName = (nameTextField?.text ?? existingDocument?.name ?? "Document").replacingOccurrences(of: "/", with: "_")
+        let fileName = "\(documentName).pdf"
+        if let url = try? URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(fileName) {
+            try? FileManager.default.removeItem(at: url)
+        }
     }
 }

@@ -8,11 +8,15 @@
 import UIKit
 import CoreData
 import QuickLook
+import PDFKit // Added for loadImagesFromDocument
 
-class SpecificCategoryViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchResultsUpdating, QLPreviewControllerDataSource, QLPreviewControllerDelegate {
+class SpecificCategoryViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchResultsUpdating, QLPreviewControllerDataSource, QLPreviewControllerDelegate, AddDocumentViewControllerDelegate {
     
     // MARK: - IBOutlets
-    @IBOutlet weak var filesTableView: UITableView! // Assuming this is the outlet name from FilesViewController
+    @IBOutlet weak var filesTableView: UITableView!
+    @IBOutlet weak var emptyStateView: UIView!
+    @IBOutlet weak var emptyTrayImageView: UIImageView!
+    @IBOutlet weak var emptyTrayLabel: UILabel!
     
     // MARK: - Properties
     private var documents: [Document] = []
@@ -46,11 +50,19 @@ class SpecificCategoryViewController: UIViewController, UITableViewDataSource, U
         // Set up table view
         setupTableView()
         
-        // Populate sample data if needed (for testing)
-        populateSampleDataIfNeeded()
-        
         // Fetch documents for the category
         fetchDocuments()
+        
+        // Style empty state view
+        emptyStateView.layer.cornerRadius = 25
+        emptyStateView.layer.shadowColor = UIColor.black.cgColor
+        emptyStateView.layer.shadowOpacity = 0.5
+        emptyStateView.layer.shadowOffset = .zero
+        emptyStateView.layer.shadowRadius = 5.0
+        emptyStateView.layer.masksToBounds = false
+        
+        // Update empty state visibility
+        updateEmptyStateVisibility()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -59,8 +71,9 @@ class SpecificCategoryViewController: UIViewController, UITableViewDataSource, U
         fetchDocuments()
         filesTableView.reloadData()
         updateTableViewHeight() // Update height when view appears
+        updateEmptyStateVisibility()
         
-        // ensure navigation tint colour is white
+        // Ensure navigation tint colour is white
         self.navigationController?.navigationBar.tintColor = .white
         
         // Create a translucent navigation bar appearance when scrolled
@@ -77,7 +90,6 @@ class SpecificCategoryViewController: UIViewController, UITableViewDataSource, U
         print("View will appear, table view frame: \(String(describing: filesTableView?.frame))")
     }
     
-
     // MARK: - Set up Bottom Blur
     private func applyBlurGradient() {
         // Create Blur Effect View
@@ -165,36 +177,13 @@ class SpecificCategoryViewController: UIViewController, UITableViewDataSource, U
         print("Updated table view height to: \(totalHeight) for \(filteredDocuments.count) rows")
     }
     
-    private func populateSampleDataIfNeeded() {
-        let context = CoreDataManager.shared.context
-        let fetchRequest: NSFetchRequest<Document> = Document.fetchRequest()
-        fetchRequest.fetchLimit = 1
-        
-        do {
-            let count = try context.count(for: fetchRequest)
-            if count == 0, let category = category {
-                // Populate sample data if no documents exist
-                print("Populating sample data for category: \(category.name ?? "Unnamed")")
-                let doc1 = Document(context: context)
-                doc1.name = "\(category.name ?? "Category") Document 1"
-                doc1.categories = NSSet(object: category)
-                // Add sample PDF data for testing
-                if let pdfData = createSamplePDFData() {
-                    doc1.pdfData = pdfData
-                }
-                
-                let doc2 = Document(context: context)
-                doc2.name = "\(category.name ?? "Category") Document 2"
-                doc2.categories = NSSet(object: category)
-                if let pdfData = createSamplePDFData() {
-                    doc2.pdfData = pdfData
-                }
-                
-                CoreDataManager.shared.saveContext()
-            }
-        } catch {
-            print("Error checking document count: \(error)")
-        }
+    // MARK: - Update Empty State Visibility
+    private func updateEmptyStateVisibility() {
+        let isEmpty = filteredDocuments.isEmpty
+        emptyStateView.isHidden = !isEmpty
+        emptyTrayLabel.isHidden = !isEmpty
+        emptyTrayImageView.isHidden = !isEmpty
+        filesTableView.isHidden = isEmpty
     }
     
     private func fetchDocuments() {
@@ -216,6 +205,7 @@ class SpecificCategoryViewController: UIViewController, UITableViewDataSource, U
             filteredDocuments = documents
             filesTableView.reloadData()
             updateTableViewHeight() // Update height after fetching
+            updateEmptyStateVisibility() // Update empty state visibility after fetching
         } catch {
             print("Error fetching documents: \(error)")
             documents = []
@@ -256,35 +246,91 @@ class SpecificCategoryViewController: UIViewController, UITableViewDataSource, U
         
         filesTableView.reloadData()
         updateTableViewHeight() // Update height after filtering
+        updateEmptyStateVisibility() // Update empty state visibility after filtering
     }
     
     // MARK: - UITableViewDataSource
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         let rowCount = filteredDocuments.count
         print("Returning \(rowCount) rows for table view")
-        return rowCount // Use filtered array
+        return rowCount
     }
-    
+
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "FileCell", for: indexPath)
+        let document = filteredDocuments[indexPath.row]
         
-        let document = filteredDocuments[indexPath.row] // Use filtered array
-        
-        // Configure cell (allowing storyboard background color)
+        // Configure cell
         cell.textLabel?.text = document.name ?? "Unnamed Document"
-        cell.accessoryType = .disclosureIndicator // Add disclosure indicator for tappable rows
-        cell.selectionStyle = .default // Allow selection highlight
         
-        print("Configured cell at \(indexPath) with document: \(document.name ?? "Unnamed")")
+        // Create a custom button for the disclosure indicator
+        let button = UIButton(type: .system)
+        button.setImage(UIImage(systemName: "chevron.right.circle.fill"), for: .normal)
+        button.tintColor = .systemGray4
+        button.frame = CGRect(x: 0, y: 0, width: 50, height: 50)
+        button.imageView?.contentMode = .scaleAspectFit
+        button.contentHorizontalAlignment = .center
+        button.contentVerticalAlignment = .center
+        button.addTarget(self, action: #selector(disclosureTapped(_:)), for: .touchUpInside)
+        cell.accessoryView = button
+        
+        cell.selectionStyle = .default
         return cell
     }
-    
+
     // MARK: - UITableViewDelegate
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
+        let document = filteredDocuments[indexPath.row]
+        showDetails(for: document) // Show details when cell body is tapped
+    }
+
+    @objc func disclosureTapped(_ sender: UIButton) {
+        guard let cell = sender.superview as? UITableViewCell,
+              let indexPath = filesTableView.indexPath(for: cell) else {
+            print("Error: Could not determine cell or indexPath from disclosure tap.")
+            return
+        }
         selectedDocument = filteredDocuments[indexPath.row]
-        print("Selected document: \(selectedDocument?.name ?? "Unnamed")")
-        presentPDFViewer()
+        presentPDFViewer() // Open document viewer when disclosure is tapped
+    }
+
+    func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
+        let document = filteredDocuments[indexPath.row]
+        
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
+            let openFileAction = UIAction(title: "Open File", image: UIImage(systemName: "doc.text.viewfinder")) { [weak self] _ in
+                guard let self = self else { return }
+                self.selectedDocument = document
+                self.presentPDFViewer()
+            }
+            
+            let showDetailsAction = UIAction(title: "Show Details", image: UIImage(systemName: "info.circle")) { [weak self] _ in
+                self?.showDetails(for: document)
+            }
+            
+            let favoriteAction = UIAction(
+                title: document.isFavorite ? "Unmark as Favourite" : "Mark as Favourite",
+                image: UIImage(systemName: document.isFavorite ? "heart.fill" : "heart")
+            ) { [weak self] _ in
+                guard let self = self else { return }
+                document.isFavorite.toggle()
+                CoreDataManager.shared.saveContext()
+                self.filesTableView.reloadData()
+            }
+            
+            let deleteAction = UIAction(title: "Delete", image: UIImage(systemName: "trash"), attributes: .destructive) { [weak self] _ in
+                guard let self = self else { return }
+                self.confirmDelete(document: document, at: indexPath)
+            }
+            
+            let sendCopyAction = UIAction(title: "Send a Copy", image: UIImage(systemName: "square.and.arrow.up")) { [weak self] _ in
+                guard let self = self else { return }
+                self.shareDocument(document)
+            }
+            
+            return UIMenu(title: "", children: [openFileAction, showDetailsAction, favoriteAction, deleteAction, sendCopyAction])
+        }
     }
     
     // MARK: - PDF Viewer
@@ -314,21 +360,180 @@ class SpecificCategoryViewController: UIViewController, UITableViewDataSource, U
     func numberOfPreviewItems(in controller: QLPreviewController) -> Int {
         return 1
     }
-    
+
     func previewController(_ controller: QLPreviewController, previewItemAt index: Int) -> QLPreviewItem {
         guard let document = selectedDocument, let pdfData = document.pdfData else {
             fatalError("PDF data is unexpectedly nil.")
         }
-        let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("temp.pdf")
+        // Use the document name, sanitized for file system compatibility
+        let documentName = (document.name ?? "Unnamed Document").replacingOccurrences(of: "/", with: "_")
+        let fileName = "\(documentName).pdf"
+        let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(fileName)
+        
         try? pdfData.write(to: url)
         return url as QLPreviewItem
     }
-    
+
     // MARK: - QLPreviewControllerDelegate
     func previewControllerDidDismiss(_ controller: QLPreviewController) {
-        // Clean up temporary file
-        if let url = try? URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("temp.pdf") {
+        // Clean up temporary file using the document name
+        if let document = selectedDocument {
+            let documentName = (document.name ?? "Unnamed Document").replacingOccurrences(of: "/", with: "_")
+            let fileName = "\(documentName).pdf"
+            let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(fileName)
             try? FileManager.default.removeItem(at: url)
         }
+    }
+    
+    // MARK: - Context Menu Actions
+    private func showDetails(for document: Document) {
+        guard let addDocumentVC = storyboard?.instantiateViewController(withIdentifier: "AddDocumentViewController") as? AddDocumentViewController else {
+            print("Error: Could not instantiate AddDocumentViewController from storyboard.")
+            return
+        }
+        
+        // Set the delegate
+        addDocumentVC.delegate = self
+        
+        // Set flags to indicate editing an existing document and read-only mode
+        addDocumentVC.isEditingExistingDocument = true
+        addDocumentVC.isReadOnly = true
+        addDocumentVC.existingDocument = document
+        
+        // Force view loading to connect outlets
+        addDocumentVC.loadViewIfNeeded()
+        
+        // Debug print to check outlet connections
+        print("favoriteSwitch after load: \(String(describing: addDocumentVC.favoriteSwitch))")
+        print("nameTextField after load: \(String(describing: addDocumentVC.nameTextField))")
+        print("summaryTableView after load: \(String(describing: addDocumentVC.summaryTableView))")
+        print("thumbnailImageView after load: \(String(describing: addDocumentVC.thumbnailImageView))")
+        print("categoryButton after load: \(String(describing: addDocumentVC.categoryButton))")
+        print("reminderSwitch after load: \(String(describing: addDocumentVC.reminderSwitch))")
+        print("expiryDatePicker after load: \(String(describing: addDocumentVC.expiryDatePicker))")
+        print("expiryDateLabel after load: \(String(describing: addDocumentVC.expiryDateLabel))")
+        
+        // Pass the selected document's data to AddDocumentViewController
+        addDocumentVC.selectedImages = loadImagesFromDocument(document)
+        addDocumentVC.summaryData = loadSummaryData(from: document)
+        addDocumentVC.selectedCategories = document.categories?.allObjects as? [Category] ?? []
+        
+        if let favoriteSwitch = addDocumentVC.favoriteSwitch {
+            favoriteSwitch.isOn = document.isFavorite
+        } else {
+            print("Warning: favoriteSwitch is nil, cannot set favorite status.")
+        }
+        
+        addDocumentVC.nameTextField?.text = document.name
+        
+        if let expiryDate = document.expiryDate {
+            addDocumentVC.reminderSwitch?.isOn = true
+            addDocumentVC.expiryDatePicker?.date = expiryDate
+            addDocumentVC.expiryDatePicker?.isHidden = false
+            addDocumentVC.expiryDateLabel?.isHidden = false
+        } else {
+            addDocumentVC.reminderSwitch?.isOn = false
+            addDocumentVC.expiryDatePicker?.isHidden = true
+            addDocumentVC.expiryDateLabel?.isHidden = true
+        }
+        
+        // Manually trigger UI update
+        addDocumentVC.updateUIWithExistingDocument()
+        
+        let navController = UINavigationController(rootViewController: addDocumentVC)
+        present(navController, animated: true, completion: nil)
+    }
+    
+    // Helper to load images from document
+    private func loadImagesFromDocument(_ document: Document) -> [UIImage] {
+        guard let pdfData = document.pdfData, let pdfDocument = PDFDocument(data: pdfData) else {
+            return []
+        }
+        
+        var images: [UIImage] = []
+        for pageIndex in 0..<pdfDocument.pageCount {
+            if let page = pdfDocument.page(at: pageIndex) {
+                let pageBounds = page.bounds(for: .mediaBox)
+                let renderer = UIGraphicsImageRenderer(size: pageBounds.size)
+                let image = renderer.image { context in
+                    UIColor.white.setFill()
+                    context.fill(pageBounds)
+                    context.cgContext.translateBy(x: 0, y: pageBounds.height)
+                    context.cgContext.scaleBy(x: 1.0, y: -1.0)
+                    page.draw(with: .mediaBox, to: context.cgContext)
+                }
+                images.append(image)
+            }
+        }
+        return images
+    }
+    
+    // Helper to load summary data from document
+    private func loadSummaryData(from document: Document) -> [String: String] {
+        guard let summaryData = document.summaryData,
+              let json = try? JSONSerialization.jsonObject(with: summaryData, options: []) as? [String: String] else {
+            return [:]
+        }
+        return json
+    }
+    
+    private func confirmDelete(document: Document, at indexPath: IndexPath) {
+        let alert = UIAlertController(
+            title: "Delete Document",
+            message: "Are you sure you want to delete \"\(document.name ?? "Unnamed Document")\"? This action cannot be undone.",
+            preferredStyle: .alert
+        )
+        
+        let deleteAction = UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
+            guard let self = self else { return }
+            CoreDataManager.shared.deleteDocument(document)
+            self.documents.removeAll { $0 == document }
+            self.filteredDocuments.remove(at: indexPath.row)
+            self.filesTableView.deleteRows(at: [indexPath], with: .automatic)
+            self.updateTableViewHeight()
+            self.updateEmptyStateVisibility()
+        }
+        
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        
+        alert.addAction(deleteAction)
+        alert.addAction(cancelAction)
+        
+        present(alert, animated: true, completion: nil)
+    }
+    
+    private func shareDocument(_ document: Document) {
+        guard let pdfData = document.pdfData else {
+            showAlert(title: "Error", message: "No PDF data available to share.")
+            return
+        }
+        
+        let fileName = (document.name ?? "Unnamed Document") + ".pdf"
+        let tempURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(fileName)
+        
+        do {
+            try pdfData.write(to: tempURL)
+            let activityViewController = UIActivityViewController(activityItems: [tempURL], applicationActivities: nil)
+            
+            if let popoverController = activityViewController.popoverPresentationController {
+                popoverController.sourceView = self.view
+                popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
+                popoverController.permittedArrowDirections = []
+            }
+            
+            present(activityViewController, animated: true) {
+                try? FileManager.default.removeItem(at: tempURL)
+            }
+        } catch {
+            showAlert(title: "Error", message: "Failed to prepare document for sharing: \(error.localizedDescription)")
+        }
+    }
+    
+    // MARK: - AddDocumentViewControllerDelegate
+    func didUpdateDocument() {
+        fetchDocuments() // Refresh the data
+        filesTableView.reloadData() // Update the table view
+        updateTableViewHeight() // Adjust the table view height
+        updateEmptyStateVisibility() // Update empty state visibility
     }
 }

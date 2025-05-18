@@ -103,7 +103,7 @@ class CoreDataManager {
         ]
         
         // Check if categories are already populated to avoid duplicates
-        let existingCategories = fetchCategories()
+        let existingCategories = fetchAllCategories() // Updated from fetchCategories()
         let existingNames = Set(existingCategories.map { $0.name ?? "" })
         
         for (name, image, color) in categoriesData {
@@ -121,6 +121,33 @@ class CoreDataManager {
             return categories
         } catch {
             print("Failed to fetch categories: \(error)")
+            return []
+        }
+    }
+    
+    // New method to fetch a category by name
+    func fetchCategory(byName name: String) -> Category? {
+        let fetchRequest: NSFetchRequest<Category> = Category.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "name == %@", name)
+        fetchRequest.fetchLimit = 1
+        do {
+            let categories = try context.fetch(fetchRequest)
+            return categories.first
+        } catch {
+            print("Failed to fetch category with name \(name): \(error)")
+            return nil
+        }
+    }
+    
+    // New method to fetch received documents
+    func fetchReceivedDocuments() -> [Document] {
+        let fetchRequest: NSFetchRequest<Document> = Document.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "isReceived == %@", NSNumber(value: true))
+        do {
+            let documents = try context.fetch(fetchRequest)
+            return documents
+        } catch {
+            print("Failed to fetch received documents: \(error)")
             return []
         }
     }

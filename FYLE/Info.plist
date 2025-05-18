@@ -2,10 +2,14 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>This app uses Bluetooth to discover nearby devices and enable file sharing between them.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>This app uses the local network to share files with nearby devices.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Fyle needs access to your camera to scan documents.</string>
+	<string>This app needs access to your camera to scan documents.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Fyle needs access to your photo library to upload images for your documents.</string>
+	<string>This app needs access to your photo library to upload images for your documents.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

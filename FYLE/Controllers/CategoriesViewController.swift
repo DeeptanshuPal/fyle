@@ -46,6 +46,8 @@ class CategoriesViewController: UIViewController, UICollectionViewDataSource, UI
         
         // Fetch categories from Core Data
         fetchCategories()
+        
+        //
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -121,7 +123,7 @@ class CategoriesViewController: UIViewController, UICollectionViewDataSource, UI
         searchController.searchResultsUpdater = self
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.searchBar.placeholder = "Search Categories"
-        searchController.searchBar.tintColor = .white // Optional: Match navigation bar style
+        searchController.searchBar.tintColor = .white
         
         // Add the search bar to the navigation bar
         navigationItem.searchController = searchController
@@ -152,8 +154,6 @@ class CategoriesViewController: UIViewController, UICollectionViewDataSource, UI
     private func fetchCategories() {
         let context = CoreDataManager.shared.context
         let fetchRequest: NSFetchRequest<Category> = Category.fetchRequest()
-        // Removed sortDescriptors to fetch categories in the order they were added
-        // fetchRequest.sortDescriptors = [NSSortDescriptor(key: "name", ascending: true)] // Sort by name
         
         do {
             categories = try context.fetch(fetchRequest)
@@ -246,11 +246,37 @@ class CategoriesViewController: UIViewController, UICollectionViewDataSource, UI
         cell.categoryColorView.layer.cornerRadius = cell.categoryColorView.frame.width / 2 // Make it a circle
         cell.categoryColorView.clipsToBounds = true
         
+        // Other UI setup for the cell
+        // Force layout to resolve constraints
+        cell.layoutIfNeeded()
+        
+        //countPillView
+        cell.fileCountPillView.layer.cornerRadius = 13
+        cell.fileCountPillView.layer.shadowColor = UIColor.black.cgColor
+        cell.fileCountPillView.layer.shadowOpacity = 0.3
+        cell.fileCountPillView.layer.shadowOffset = .zero
+        cell.fileCountPillView.layer.shadowRadius = 3.0
+        /// Define the shadow path to match the bounds of the pill view
+        cell.fileCountPillView.layer.shadowPath = UIBezierPath(roundedRect: cell.fileCountPillView.bounds, cornerRadius: 13).cgPath
+        /// Ensure masksToBounds is false to allow the shadow to appear outside
+        cell.fileCountPillView.layer.masksToBounds = false
+        /// If the view's background is transparent, ensure it has a solid background color
+        cell.fileCountPillView.backgroundColor = UIColor.white.withAlphaComponent(0.9)
+        
+        //categoryImageView
+        cell.categoryColorView.layer.cornerRadius = cell.categoryColorView.layer.frame.width / 2 - 4
+        cell.categoryColorView.layer.shadowColor = UIColor.black.cgColor
+        cell.categoryColorView.layer.shadowOpacity = 0.35
+        cell.categoryColorView.layer.shadowOffset = .zero
+        cell.categoryColorView.layer.shadowRadius = 4.0
+        /// Ensure masksToBounds is false to allow the shadow to appear outside
+        cell.categoryColorView.layer.masksToBounds = false
+        
         // Add shadow to the cell
         cell.layer.shadowColor = UIColor.black.cgColor
-        cell.layer.shadowOpacity = 0.1
-        cell.layer.shadowOffset = CGSize(width: 0, height: 1)
-        cell.layer.shadowRadius = 5
+        cell.layer.shadowOpacity = 0.2
+        cell.layer.shadowOffset = .zero
+        cell.layer.shadowRadius = 5.0
         cell.layer.masksToBounds = false // Ensure shadow is visible
         cell.layer.shadowPath = UIBezierPath(roundedRect: cell.bounds, cornerRadius: 11).cgPath
         cell.layer.shouldRasterize = true
@@ -274,14 +300,40 @@ class CategoriesViewController: UIViewController, UICollectionViewDataSource, UI
     
     // MARK: - UICollectionViewDelegateFlowLayout
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let padding: CGFloat = 20 // Total padding space (adjust as needed)
-        let minimumSpacing: CGFloat = 15 // Space between items
-        let totalSpacing = padding + minimumSpacing // Combined spacing
+        let minimumHorizontalGap: CGFloat = 16
+        let padding: CGFloat = 20 // Total padding space (left + right edges)
+        let maxItemWidth: CGFloat = 200
         
-        let availableWidth = collectionView.frame.width - totalSpacing + 20
-        let itemWidth = availableWidth / 2 // Divide available space into 2 columns
+        // Set edge padding via section insets
+        if let flowLayout = collectionViewLayout as? UICollectionViewFlowLayout {
+            flowLayout.sectionInset = UIEdgeInsets(top: 0, left: padding / 2, bottom: 0, right: padding / 2)
+        }
         
-        return CGSize(width: itemWidth, height: 67) // Maintain fixed height
+        // Calculate available width after accounting for edge padding
+        let availableWidth = collectionView.frame.width - padding
+        // Calculate base width for 2 columns with minimum gap
+        let baseWidth = (availableWidth - minimumHorizontalGap) / 2
+        
+        // Determine actual item width and resulting horizontal gap
+        let itemWidth: CGFloat
+        var horizontalGap: CGFloat
+        
+        if baseWidth > maxItemWidth {
+            itemWidth = maxItemWidth
+            // Calculate new horizontal gap when width is capped
+            horizontalGap = availableWidth - (2 * maxItemWidth)
+        } else {
+            itemWidth = baseWidth
+            horizontalGap = minimumHorizontalGap
+        }
+        
+        // Use the same gap value for vertical and horizontal spacing
+        if let flowLayout = collectionViewLayout as? UICollectionViewFlowLayout {
+            flowLayout.minimumInteritemSpacing = horizontalGap
+            flowLayout.minimumLineSpacing = horizontalGap
+        }
+        
+        return CGSize(width: itemWidth, height: 80)
     }
     
     // MARK: - Helper Method for Color Mapping
