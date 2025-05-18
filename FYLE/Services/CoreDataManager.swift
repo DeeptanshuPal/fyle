@@ -40,20 +40,6 @@ class CoreDataManager {
         }
     }
     
-    // MARK: - Document Management
-    func createDocument(name: String, summaryData: Data?, expiryDate: Date?, thumbnail: Data?, pdfData: Data?, reminderDate: Date?, categories: NSSet) -> Document {
-        let document = Document(context: context)
-        document.name = name
-        document.summaryData = summaryData
-        document.expiryDate = expiryDate
-        document.thumbnail = thumbnail
-        document.pdfData = pdfData
-        document.reminderDate = reminderDate
-        document.categories = categories
-        saveContext()
-        return document
-    }
-    
     // MARK: - Category Management
     func createCategory(name: String, image: String, color: UIColor) -> Category {
         let category = Category(context: context)
@@ -65,7 +51,6 @@ class CoreDataManager {
     }
     
     private func colorToString(_ color: UIColor) -> String {
-        // Map UIColor to a string representation (e.g., system color names)
         if color == .systemYellow { return "systemYellow" }
         if color == .systemBrown { return "systemBrown" }
         if color == .systemTeal { return "systemTeal" }
@@ -102,8 +87,7 @@ class CoreDataManager {
             ("Miscellaneous", "tray.full.fill", UIColor.systemYellow)
         ]
         
-        // Check if categories are already populated to avoid duplicates
-        let existingCategories = fetchAllCategories() // Updated from fetchCategories()
+        let existingCategories = fetchAllCategories()
         let existingNames = Set(existingCategories.map { $0.name ?? "" })
         
         for (name, image, color) in categoriesData {
@@ -114,7 +98,7 @@ class CoreDataManager {
         print("Sample categories populated or already exist.")
     }
     
-    func fetchAllCategories() -> [Category] { // Renamed to avoid conflict
+    func fetchAllCategories() -> [Category] {
         let fetchRequest: NSFetchRequest<Category> = Category.fetchRequest()
         do {
             let categories = try context.fetch(fetchRequest)
@@ -125,7 +109,6 @@ class CoreDataManager {
         }
     }
     
-    // New method to fetch a category by name
     func fetchCategory(byName name: String) -> Category? {
         let fetchRequest: NSFetchRequest<Category> = Category.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "name == %@", name)
@@ -139,7 +122,6 @@ class CoreDataManager {
         }
     }
     
-    // New method to fetch received documents
     func fetchReceivedDocuments() -> [Document] {
         let fetchRequest: NSFetchRequest<Document> = Document.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "isReceived == %@", NSNumber(value: true))

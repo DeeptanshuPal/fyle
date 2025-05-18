@@ -181,7 +181,7 @@ class FilesViewController: UIViewController, UITableViewDataSource, UITableViewD
             print("Error: Unable to update table view height - tableView or constraint is nil.")
             return
         }
-        let rowHeight: CGFloat = 51.5
+        let rowHeight: CGFloat = 51
         let totalHeight = CGFloat(filteredDocuments.count) * rowHeight
         constraint.constant = totalHeight
         tableView.layoutIfNeeded()
@@ -213,7 +213,7 @@ class FilesViewController: UIViewController, UITableViewDataSource, UITableViewD
         
         // Create a custom button for the disclosure indicator
         let button = UIButton(type: .system)
-        button.setImage(UIImage(systemName: "chevron.right.circle.fill"), for: .normal)
+        button.setImage(UIImage(systemName: "chevron.down.circle.fill"), for: .normal)
         button.tintColor = .systemGray4
         
         // Explicitly set the button size
@@ -240,8 +240,8 @@ class FilesViewController: UIViewController, UITableViewDataSource, UITableViewD
             return
         }
         tableView.deselectRow(at: indexPath, animated: true)
-        let document = filteredDocuments[indexPath.row]
-        showDetails(for: document)
+        selectedDocument = filteredDocuments[indexPath.row]
+        presentPDFViewer()
     }
     
     @objc func disclosureTapped(_ sender: UIButton) {
@@ -250,8 +250,8 @@ class FilesViewController: UIViewController, UITableViewDataSource, UITableViewD
             print("Error: Could not determine cell or indexPath from disclosure tap.")
             return
         }
-        selectedDocument = filteredDocuments[indexPath.row]
-        presentPDFViewer()
+        let document = filteredDocuments[indexPath.row]
+        showDetails(for: document)
     }
     
     // MARK: - Context Menu for Tap-and-Hold

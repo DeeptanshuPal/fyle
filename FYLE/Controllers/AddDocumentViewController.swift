@@ -224,7 +224,8 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
     
     private func updateTableViewHeight() {
         let rowHeight: CGFloat = 51.5
-        let totalHeight = (CGFloat(summaryData.count) * rowHeight) + 40
+        let rowCount = summaryData.isEmpty ? 1 : summaryData.count
+        let totalHeight = (CGFloat(rowCount) * rowHeight) + 40
         tableViewHeightConstraint?.constant = totalHeight
         summaryTableView?.reloadData()
         summaryTableView?.layoutIfNeeded()
@@ -866,25 +867,50 @@ class AddDocumentViewController: UIViewController, UITableViewDataSource, UITabl
     
     // MARK: - TableView DataSource & Delegate
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return summaryData.count
+        let rowCount = summaryData.isEmpty ? 1 : summaryData.count
+        return rowCount
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "KeyValueCell", for: indexPath) as! KeyValueTableViewCell
         
-        cell.delegate = self
-        cell.index = indexPath.row
-        
-        if indexPath.row < summaryData.count {
-            let key = Array(summaryData.keys)[indexPath.row]
-            cell.ColonLabel.text = ":"
-            cell.KeyTextField.text = key
-            cell.ValueTextField.text = summaryData[key]
-            cell.KeyTextField.isEnabled = !isReadOnly
-            cell.ValueTextField.isEnabled = !isReadOnly
+        if summaryData.isEmpty {
+            // Hide key-value components
+            cell.KeyTextField.isHidden = true
+            cell.ValueTextField.isHidden = true
+            cell.ColonLabel.isHidden = true
+            
+            // Show and configure the centered message
+            cell.noSummaryLabel.isHidden = false
+            cell.noSummaryLabel.text = "No summary could be generated for this file"
+            
+            return cell
+        } else {
+            // Show key-value components and hide the message
+            cell.KeyTextField.isHidden = false
+            cell.ValueTextField.isHidden = false
+            cell.ColonLabel.isHidden = false
+            cell.noSummaryLabel.isHidden = true
+            
+            cell.delegate = self
+            cell.index = indexPath.row
+            
+            if indexPath.row < summaryData.count {
+                let key = Array(summaryData.keys)[indexPath.row]
+                cell.ColonLabel.text = ":"
+                cell.KeyTextField.text = key
+                cell.ValueTextField.text = summaryData[key]
+                cell.KeyTextField.isEnabled = !isReadOnly
+                cell.ValueTextField.isEnabled = !isReadOnly
+                
+                // Reset text alignment and styling to default
+                cell.KeyTextField.textAlignment = .left
+                cell.KeyTextField.font = .systemFont(ofSize: 16)
+                cell.KeyTextField.textColor = .black
+            }
+            
+            return cell
         }
-        
-        return cell
     }
     
     // MARK: - KeyValueCellDelegate

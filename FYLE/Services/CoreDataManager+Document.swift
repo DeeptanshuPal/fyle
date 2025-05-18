@@ -6,7 +6,7 @@
 //
 
 import CoreData
-import UserNotifications
+import UIKit
 
 extension CoreDataManager {
     // MARK: - Document Operations
@@ -35,6 +35,12 @@ extension CoreDataManager {
         document.categories = categories
         document.sharedWith = sharedWith
         saveContext()
+        
+        // Schedule notifications if reminderDate is set
+        if reminderDate != nil, let appDelegate = UIApplication.shared.delegate as? AppDelegate {
+            appDelegate.scheduleLocalNotifications(for: [document])
+        }
+        
         return document
     }
     
@@ -60,7 +66,7 @@ extension CoreDataManager {
         }
     }
     
-    /// fetch all the documents with reminders
+    /// Fetch all the documents with reminders
     func fetchDocumentsWithReminders() -> [Document] {
         let request: NSFetchRequest<Document> = Document.fetchRequest()
         request.predicate = NSPredicate(format: "reminderDate != nil")
@@ -72,7 +78,7 @@ extension CoreDataManager {
         }
     }
     
-    /// fetch all shared documents
+    /// Fetch all shared documents
     func fetchShares() -> [Share] {
         let request: NSFetchRequest<Share> = Share.fetchRequest()
         do {
@@ -83,47 +89,15 @@ extension CoreDataManager {
         }
     }
     
-    /// Deletes a document from Core Data
+    /// Deletes a document from Core Data and removes its scheduled notifications
     func deleteDocument(_ document: Document) {
+        let center = UNUserNotificationCenter.current()
+        let objectIDString = document.objectID.uriRepresentation().absoluteString
+        let suffixes = ["_7days", "_dayBefore", "_today", "_12hours"]
+        let identifiers = suffixes.map { objectIDString + $0 }
+        center.removePendingNotificationRequests(withIdentifiers: identifiers)
+        
         context.delete(document)
         saveContext()
     }
-    
-    func scheduleNotification(for document: Document) {
-            guard let reminderDate = document.reminderDate else { return }
-            guard UserDefaults.standard.bool(forKey: "notificationsEnabled") else { return }
-            guard let reminderDate = document.reminderDate else { return }
-            
-            // Convert reminderDate to user's local time zone
-            let calendar = Calendar.current
-            let localReminderDate = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: reminderDate)
-            
-            // Create notification content
-            let content = UNMutableNotificationContent()
-            content.title = "📅 Document Expiry Reminder"
-            content.body = "\(document.name ?? "Your document") expires on \(document.formattedExpiryDate ?? "soon")!"
-            content.sound = .default
-            
-            // Set the trigger for the notification (1 day before expiry)
-            let triggerDate = calendar.date(byAdding: .day, value: -1, to: reminderDate)!
-            let triggerComponents = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: triggerDate)
-            let trigger = UNCalendarNotificationTrigger(dateMatching: triggerComponents, repeats: false)
-            
-            // Use document's ID as the request identifier
-            let requestID = document.objectID.uriRepresentation().absoluteString
-            let request = UNNotificationRequest(
-                identifier: requestID,
-                content: content,
-                trigger: trigger
-            )
-            
-            // Schedule the notification
-            UNUserNotificationCenter.current().add(request) { error in
-                if let error = error {
-                    print("Failed to schedule notification: \(error)")
-                } else {
-                    print("Scheduled notification for \(document.name ?? "unnamed document")")
-                }
-            }
-        }
 }

@@ -16,6 +16,8 @@ class SplashViewController: UIViewController {
     @IBOutlet var gridUIView: UIView!
     @IBOutlet weak var continueButton: UIButton!
     
+    @IBOutlet weak var dataManaged: UIButton!
+    
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -51,6 +53,16 @@ class SplashViewController: UIViewController {
             UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve, animations: {
                 window.rootViewController = navigationController
             }, completion: nil)
+        }
+    }
+    
+    @IBAction func clickdataManaged(_ sender: Any) {
+        // Present the WebViewController embedded in a navigation controller
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        if let webVC = storyboard.instantiateViewController(withIdentifier: "WebViewController") as? WebViewController {
+            let navController = UINavigationController(rootViewController: webVC)
+            navController.modalPresentationStyle = .fullScreen
+            present(navController, animated: true, completion: nil)
         }
     }
 }

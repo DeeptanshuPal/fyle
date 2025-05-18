@@ -16,8 +16,10 @@ import PDFKit
 class sharedVC: UIViewController, ShareDocumentPickerDelegate, QLPreviewControllerDataSource, QLPreviewControllerDelegate, AddDocumentViewControllerDelegate {
     
     // MARK: - IBOutlets
-    @IBOutlet weak var sendButton: UIButton!
-    @IBOutlet weak var receiveButton: UIButton!
+    @IBOutlet var SendButton: UITapGestureRecognizer!
+    @IBOutlet var receiveButton: UITapGestureRecognizer!
+    @IBOutlet weak var sendImageView: UIImageView!
+    @IBOutlet weak var receiveImageView: UIImageView!
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var BGView: UIView!
     @IBOutlet weak var BGView2: UIView!
@@ -26,6 +28,9 @@ class sharedVC: UIViewController, ShareDocumentPickerDelegate, QLPreviewControll
     @IBOutlet weak var emptyTrayImageView: UIImageView!
     @IBOutlet weak var emptyTrayLabel: UILabel!
     @IBOutlet weak var tableViewHeightConstraint: NSLayoutConstraint!
+    
+    private var sendOverlay: UIView!
+    private var receiveOverlay: UIView!
     
     // MARK: - Multipeer Properties
     var peerID: MCPeerID!
@@ -81,7 +86,6 @@ class sharedVC: UIViewController, ShareDocumentPickerDelegate, QLPreviewControll
         BGView3.layer.shadowRadius = 5.0
         BGView3.layer.masksToBounds = false
         
-        // Style empty state view
         emptyStateView.layer.cornerRadius = 20
         emptyStateView.layer.shadowColor = UIColor.black.cgColor
         emptyStateView.layer.shadowOpacity = 0.5
@@ -92,6 +96,96 @@ class sharedVC: UIViewController, ShareDocumentPickerDelegate, QLPreviewControll
         tableView.layer.cornerRadius = 11
         tableView.backgroundColor = .clear
         tableView.separatorStyle = .singleLine
+        
+        // Setup send image view
+        if let sendImageView = sendImageView {
+            sendImageView.isUserInteractionEnabled = true
+            if SendButton.view != sendImageView {
+                sendImageView.addGestureRecognizer(SendButton)
+            }
+            SendButton.isEnabled = true
+            SendButton.addTarget(self, action: #selector(sendTapped(_:)))
+            sendImageView.layer.shadowColor = UIColor.white.cgColor
+            sendImageView.layer.shadowOffset = CGSize(width: 0, height: 2)
+            sendImageView.layer.shadowOpacity = 0.8
+            sendImageView.layer.shadowRadius = 4
+            sendImageView.layer.masksToBounds = false
+            print("✅ SendButton attached to sendImageView: \(sendImageView)")
+            
+            // Add overlay with mask
+            sendOverlay = UIView(frame: sendImageView.bounds)
+            sendOverlay.backgroundColor = UIColor.black.withAlphaComponent(0.3)
+            sendOverlay.isUserInteractionEnabled = false
+            sendOverlay.alpha = 0
+            sendOverlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            sendImageView.addSubview(sendOverlay)
+            
+            if let image = sendImageView.image {
+                let maskLayer = CALayer()
+                maskLayer.contents = image.cgImage
+                maskLayer.frame = imageRect(in: sendImageView)
+                sendOverlay.layer.mask = maskLayer
+            }
+        }
+        
+        // Setup receive image view
+        if let receiveImageView = receiveImageView {
+            receiveImageView.isUserInteractionEnabled = true
+            if receiveButton.view != receiveImageView {
+                receiveImageView.addGestureRecognizer(receiveButton)
+            }
+            receiveButton.isEnabled = true
+            receiveButton.addTarget(self, action: #selector(receiveTapped(_:)))
+            receiveImageView.layer.shadowColor = UIColor.white.cgColor
+            receiveImageView.layer.shadowOffset = CGSize(width: 0, height: 2)
+            receiveImageView.layer.shadowOpacity = 0.8
+            receiveImageView.layer.shadowRadius = 4
+            receiveImageView.layer.masksToBounds = false
+            print("✅ receiveButton attached to receiveImageView: \(receiveImageView)")
+            
+            // Add overlay with mask
+            receiveOverlay = UIView(frame: receiveImageView.bounds)
+            receiveOverlay.backgroundColor = UIColor.black.withAlphaComponent(0.3)
+            receiveOverlay.isUserInteractionEnabled = false
+            receiveOverlay.alpha = 0
+            receiveOverlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            receiveImageView.addSubview(receiveOverlay)
+            
+            if let image = receiveImageView.image {
+                let maskLayer = CALayer()
+                maskLayer.contents = image.cgImage
+                maskLayer.frame = imageRect(in: receiveImageView)
+                receiveOverlay.layer.mask = maskLayer
+            }
+        }
+    }
+    
+    // MARK: Helper Function
+    private func imageRect(in imageView: UIImageView) -> CGRect {
+        guard let image = imageView.image else { return .zero }
+        let viewSize = imageView.bounds.size
+        let imageSize = image.size
+
+        switch imageView.contentMode {
+        case .scaleAspectFit:
+            let scale = min(viewSize.width / imageSize.width, viewSize.height / imageSize.height)
+            let width = imageSize.width * scale
+            let height = imageSize.height * scale
+            let x = (viewSize.width - width) / 2
+            let y = (viewSize.height - height) / 2
+            return CGRect(x: x, y: y, width: width, height: height)
+        case .scaleAspectFill:
+            let scale = max(viewSize.width / imageSize.width, viewSize.height / imageSize.height)
+            let width = imageSize.width * scale
+            let height = imageSize.height * scale
+            let x = (viewSize.width - width) / 2
+            let y = (viewSize.height - height) / 2
+            return CGRect(x: x, y: y, width: width, height: height)
+        case .scaleToFill, .redraw:
+            return imageView.bounds
+        default:
+            return imageView.bounds // Fallback for center, top, etc.
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -151,32 +245,6 @@ extension sharedVC {
         tableView.separatorStyle = .none
         tableView.backgroundColor = .clear
         tableView.isScrollEnabled = false // Disable scrolling for dynamic height
-
-        styleButtons()
-    }
-
-    private func styleButtons() {
-        let buttons = [sendButton, receiveButton]
-        buttons.forEach { button in
-            // Disable animations while setting up the button
-            UIView.setAnimationsEnabled(false)
-            defer { UIView.setAnimationsEnabled(true) }
-
-            button?.adjustsImageWhenHighlighted = false
-            button?.showsTouchWhenHighlighted = false
-            
-            // Explicitly set title colors for all states
-            button?.setTitleColor(.white, for: .normal)
-            button?.setTitleColor(.white, for: .highlighted)
-            button?.setTitleColor(.white, for: .selected)
-            button?.setTitleColor(.white, for: .disabled)
-            
-            // Apply shadow
-            button?.layer.shadowColor = UIColor.white.cgColor
-            button?.layer.shadowOffset = CGSize(width: 0, height: 2)
-            button?.layer.shadowOpacity = 0.8
-            button?.layer.shadowRadius = 4
-        }
     }
 
     func applyBlurGradient() {
@@ -283,7 +351,6 @@ extension sharedVC: MCNearbyServiceAdvertiserDelegate {
 // MARK: - MCBrowserViewControllerDelegate
 extension sharedVC: MCBrowserViewControllerDelegate {
     func browserViewControllerDidFinish(_ browserViewController: MCBrowserViewController) {
-        // Disable animations during dismissal and alert presentation
         UIView.setAnimationsEnabled(false)
         defer { UIView.setAnimationsEnabled(true) }
 
@@ -312,7 +379,6 @@ extension sharedVC: MCBrowserViewControllerDelegate {
     }
 
     func browserViewControllerWasCancelled(_ browserViewController: MCBrowserViewController) {
-        // Disable animations during dismissal
         UIView.setAnimationsEnabled(false)
         defer { UIView.setAnimationsEnabled(true) }
 
@@ -352,18 +418,23 @@ extension sharedVC: UIDocumentPickerDelegate {
 
 // MARK: - IBActions
 extension sharedVC {
-    @IBAction func sendButtonTapped(_ sender: UIButton) {
+    @objc func sendTapped(_ sender: UITapGestureRecognizer) {
+        sendOverlay.alpha = 0.3
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            UIView.animate(withDuration: 0.3) {
+                self.sendOverlay.alpha = 0
+            }
+        }
         print("📤 Send tapped")
-
-        // Disable animations during the tap and alert presentation
+        
         UIView.setAnimationsEnabled(false)
         defer { UIView.setAnimationsEnabled(true) }
-
+        
         let alert = UIAlertController(title: "Select Source", message: nil, preferredStyle: .actionSheet)
         alert.addAction(UIAlertAction(title: "Pick from My Documents", style: .default, handler: { [weak self] _ in
             self?.presentDocumentPicker()
         }))
-
+        
         alert.addAction(UIAlertAction(title: "Pick from Device Files", style: .default, handler: { [weak self] _ in
             let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: [.pdf], asCopy: true)
             documentPicker.delegate = self
@@ -371,17 +442,23 @@ extension sharedVC {
             documentPicker.modalPresentationStyle = .formSheet
             self?.present(documentPicker, animated: true)
         }))
-
+        
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-
+        
         present(alert, animated: true, completion: nil)
     }
-
-    @IBAction func receiveButtonTapped(_ sender: UIButton) {
-        // Disable animations during the tap and alert presentation
+    
+    @objc func receiveTapped(_ sender: UITapGestureRecognizer) {
+        receiveOverlay.alpha = 0.3
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            UIView.animate(withDuration: 0.3) {
+                self.receiveOverlay.alpha = 0
+            }
+        }
+        
         UIView.setAnimationsEnabled(false)
         defer { UIView.setAnimationsEnabled(true) }
-
+        
         guard !isAdvertising else {
             advertiser?.stopAdvertisingPeer()
             advertiser = nil
@@ -389,19 +466,19 @@ extension sharedVC {
             print("🛑 Advertiser stopped.")
             return
         }
-
+        
         print("📥 Receive tapped")
-
+        
         advertiser?.stopAdvertisingPeer()
         advertiser = nil
-
+        
         advertiser = MCNearbyServiceAdvertiser(peer: peerID, discoveryInfo: nil, serviceType: "fyleshare123")
         advertiser?.delegate = self
         advertiser?.startAdvertisingPeer()
-
+        
         isAdvertising = true
         print("🚀 Advertiser started.")
-
+        
         let alert = UIAlertController(title: "Receiving Mode", message: "Waiting for sender...", preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Stop", style: .cancel, handler: { [weak self] _ in
             self?.advertiser?.stopAdvertisingPeer()
@@ -409,7 +486,7 @@ extension sharedVC {
             self?.isAdvertising = false
             print("🛑 Advertiser stopped.")
         }))
-
+        
         present(alert, animated: true, completion: nil)
     }
 }
@@ -428,14 +505,13 @@ extension sharedVC {
         present(navController, animated: true)
     }
     
-    // MARK: - ShareDocumentPickerDelegate
     func didSelectDocument(_ document: Document) {
-        print("✅ Document selected: \(document.name ?? "Unnamed")") // Debug log
+        print("✅ Document selected: \(document.name ?? "Unnamed")")
         let sharedDoc = document.toSharedDocument()
         do {
             self.dataToSend = try JSONEncoder().encode(sharedDoc)
-            print("✅ Data encoded successfully, presenting browser") // Debug log
-            DispatchQueue.main.async { // Ensure presentation happens on main thread
+            print("✅ Data encoded successfully, presenting browser")
+            DispatchQueue.main.async {
                 self.presentBrowserToSend()
             }
         } catch {
@@ -445,8 +521,6 @@ extension sharedVC {
 }
 
 // MARK: - Fetch Core Data & Table View
-
-// UITableViewDelegate, UITableViewDataSource
 extension sharedVC: UITableViewDelegate, UITableViewDataSource {
     func fetchReceivedFiles() {
         receivedFiles = CoreDataManager.shared.fetchReceivedDocuments()
@@ -488,9 +562,8 @@ extension sharedVC: UITableViewDelegate, UITableViewDataSource {
         let document = receivedFiles[indexPath.row]
         cell?.textLabel?.text = document.name ?? "No Name"
         
-        // Create a custom button for the disclosure indicator
         let button = UIButton(type: .system)
-        button.setImage(UIImage(systemName: "chevron.right.circle.fill"), for: .normal)
+        button.setImage(UIImage(systemName: "chevron.down.circle.fill"), for: .normal)
         button.tintColor = .systemGray4
         button.frame = CGRect(x: 0, y: 0, width: 50, height: 50)
         button.imageView?.contentMode = .scaleAspectFit
@@ -509,8 +582,8 @@ extension sharedVC: UITableViewDelegate, UITableViewDataSource {
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        let document = receivedFiles[indexPath.row]
-        showDetails(for: document) // Show details when cell body is tapped
+        selectedDocument = receivedFiles[indexPath.row]
+        presentPDFViewer()
     }
 
     @objc func disclosureTapped(_ sender: UIButton) {
@@ -519,8 +592,8 @@ extension sharedVC: UITableViewDelegate, UITableViewDataSource {
             print("Error: Could not determine cell or indexPath from disclosure tap.")
             return
         }
-        selectedDocument = receivedFiles[indexPath.row]
-        presentPDFViewer() // Open document viewer when disclosure is tapped
+        let document = receivedFiles[indexPath.row]
+        showDetails(for: document)
     }
 
     func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
@@ -562,8 +635,6 @@ extension sharedVC: UITableViewDelegate, UITableViewDataSource {
     }
 }
 
-// ... (Rest of the code remains unchanged)
-
 // MARK: - PDF Viewer
 extension sharedVC {
     private func presentPDFViewer() {
@@ -589,7 +660,6 @@ extension sharedVC {
         guard let document = selectedDocument, let pdfData = document.pdfData else {
             fatalError("PDF data is unexpectedly nil.")
         }
-        // Use the document name, sanitized for file system compatibility
         let documentName = (document.name ?? "Unnamed Document").replacingOccurrences(of: "/", with: "_")
         let fileName = "\(documentName).pdf"
         let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(fileName)
@@ -599,7 +669,6 @@ extension sharedVC {
     }
     
     func previewControllerDidDismiss(_ controller: QLPreviewController) {
-        // Clean up temporary file using the document name
         if let document = selectedDocument {
             let documentName = (document.name ?? "Unnamed Document").replacingOccurrences(of: "/", with: "_")
             let fileName = "\(documentName).pdf"
@@ -617,18 +686,13 @@ extension sharedVC {
             return
         }
         
-        // Set the delegate
         addDocumentVC.delegate = self
-        
-        // Set flags to indicate editing an existing document and read-only mode
         addDocumentVC.isEditingExistingDocument = true
         addDocumentVC.isReadOnly = true
         addDocumentVC.existingDocument = document
         
-        // Force view loading to connect outlets
         addDocumentVC.loadViewIfNeeded()
         
-        // Debug print to check outlet connections
         print("favoriteSwitch after load: \(String(describing: addDocumentVC.favoriteSwitch))")
         print("nameTextField after load: \(String(describing: addDocumentVC.nameTextField))")
         print("summaryTableView after load: \(String(describing: addDocumentVC.summaryTableView))")
@@ -638,7 +702,6 @@ extension sharedVC {
         print("expiryDatePicker after load: \(String(describing: addDocumentVC.expiryDatePicker))")
         print("expiryDateLabel after load: \(String(describing: addDocumentVC.expiryDateLabel))")
         
-        // Pass the selected document's data to AddDocumentViewController
         addDocumentVC.selectedImages = loadImagesFromDocument(document)
         addDocumentVC.summaryData = loadSummaryData(from: document)
         addDocumentVC.selectedCategories = document.categories?.allObjects as? [Category] ?? []
@@ -662,14 +725,12 @@ extension sharedVC {
             addDocumentVC.expiryDateLabel?.isHidden = true
         }
         
-        // Manually trigger UI update
         addDocumentVC.updateUIWithExistingDocument()
         
         let navController = UINavigationController(rootViewController: addDocumentVC)
         present(navController, animated: true, completion: nil)
     }
     
-    // Helper to load images from document
     private func loadImagesFromDocument(_ document: Document) -> [UIImage] {
         guard let pdfData = document.pdfData, let pdfDocument = PDFDocument(data: pdfData) else {
             return []
@@ -693,7 +754,6 @@ extension sharedVC {
         return images
     }
     
-    // Helper to load summary data from document
     private func loadSummaryData(from document: Document) -> [String: String] {
         guard let summaryData = document.summaryData,
               let json = try? JSONSerialization.jsonObject(with: summaryData, options: []) as? [String: String] else {
@@ -763,10 +823,10 @@ extension sharedVC {
 // MARK: - AddDocumentViewControllerDelegate
 extension sharedVC {
     func didUpdateDocument() {
-        fetchReceivedFiles() // Refresh the data
-        tableView.reloadData() // Update the table view
-        updateTableViewHeight() // Adjust the table view height
-        updateEmptyStateVisibility() // Update empty state visibility
+        fetchReceivedFiles()
+        tableView.reloadData()
+        updateTableViewHeight()
+        updateEmptyStateVisibility()
     }
 }
 

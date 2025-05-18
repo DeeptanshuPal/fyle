@@ -447,8 +447,7 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
             return
         }
         
-        selectedDocument = document
-        presentPDFViewer()
+        showDetails(for: document)
     }
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
@@ -596,7 +595,8 @@ class RemindersViewController: UIViewController, UITableViewDataSource, UITableV
         }
         
         guard let document = reminder else { return }
-        showDetails(for: document)
+        selectedDocument = document
+        presentPDFViewer()
     }
     
     func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {

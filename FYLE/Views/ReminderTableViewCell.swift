@@ -14,7 +14,7 @@ class RemindersTableViewCell: UITableViewCell {
     
     let chevronButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setImage(UIImage(systemName: "chevron.right.circle.fill"), for: .normal)
+        button.setImage(UIImage(systemName: "chevron.down.circle.fill"), for: .normal)
         button.tintColor = .systemGray4
         button.frame = CGRect(x: 0, y: 0, width: 30, height: 30)
         button.imageView?.contentMode = .scaleAspectFit

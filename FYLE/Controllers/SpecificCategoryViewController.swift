@@ -170,7 +170,7 @@ class SpecificCategoryViewController: UIViewController, UITableViewDataSource, U
     
     private func updateTableViewHeight() {
         guard let tableView = filesTableView else { return }
-        let rowHeight: CGFloat = 51.5
+        let rowHeight: CGFloat = 51
         let totalHeight = CGFloat(filteredDocuments.count) * rowHeight
         tableViewHeightConstraint?.constant = totalHeight
         tableView.layoutIfNeeded()
@@ -265,7 +265,7 @@ class SpecificCategoryViewController: UIViewController, UITableViewDataSource, U
         
         // Create a custom button for the disclosure indicator
         let button = UIButton(type: .system)
-        button.setImage(UIImage(systemName: "chevron.right.circle.fill"), for: .normal)
+        button.setImage(UIImage(systemName: "chevron.down.circle.fill"), for: .normal)
         button.tintColor = .systemGray4
         button.frame = CGRect(x: 0, y: 0, width: 50, height: 50)
         button.imageView?.contentMode = .scaleAspectFit
@@ -281,8 +281,8 @@ class SpecificCategoryViewController: UIViewController, UITableViewDataSource, U
     // MARK: - UITableViewDelegate
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        let document = filteredDocuments[indexPath.row]
-        showDetails(for: document) // Show details when cell body is tapped
+        selectedDocument = filteredDocuments[indexPath.row]
+        presentPDFViewer()
     }
 
     @objc func disclosureTapped(_ sender: UIButton) {
@@ -291,8 +291,8 @@ class SpecificCategoryViewController: UIViewController, UITableViewDataSource, U
             print("Error: Could not determine cell or indexPath from disclosure tap.")
             return
         }
-        selectedDocument = filteredDocuments[indexPath.row]
-        presentPDFViewer() // Open document viewer when disclosure is tapped
+        let document = filteredDocuments[indexPath.row]
+        showDetails(for: document)
     }
 
     func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {

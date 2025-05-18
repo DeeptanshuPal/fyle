@@ -216,7 +216,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
     
     // MARK: - Update Table View Height
     private func updateTableViewHeight() {
-        let rowHeight: CGFloat = 51.5
+        let rowHeight: CGFloat = 51
         let totalHeight = CGFloat(favourites.count) * rowHeight
         tableViewHeightConstraint?.constant = totalHeight
         favouritesTableView.layoutIfNeeded()
@@ -345,7 +345,7 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
         
         // Create custom chevron button
         let chevronButton = UIButton(type: .system)
-        chevronButton.setImage(UIImage(systemName: "chevron.right.circle.fill"), for: .normal)
+        chevronButton.setImage(UIImage(systemName: "chevron.down.circle.fill"), for: .normal)
         chevronButton.tintColor = .systemGray4
         chevronButton.frame = CGRect(x: 0, y: 0, width: 50, height: 50)
         chevronButton.imageView?.contentMode = .scaleAspectFit
@@ -370,15 +370,15 @@ class HomeViewController: UIViewController, UICollectionViewDataSource, UICollec
             print("Error: Could not determine cell or indexPath from disclosure tap.")
             return
         }
-        selectedDocument = favourites[indexPath.row]
-        presentPDFViewer() // Assuming this method presents QLPreviewController
+        let document = favourites[indexPath.row]
+        showDetails(for: document)
     }
     
     // MARK: - UITableViewDelegate
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        let document = favourites[indexPath.row]
-        showDetails(for: document) // Assuming this method presents AddDocumentViewController
+        selectedDocument = favourites[indexPath.row]
+        presentPDFViewer()
     }
     
     func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
