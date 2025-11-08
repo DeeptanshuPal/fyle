@@ -14,5 +14,7 @@ Fyle makes document management effortless. It goes beyond just a storage solutio
 
 ## Screenshots
 <img width="2462" height="1768" alt="image" src="https://github.com/user-attachments/assets/d01b96f4-3156-44c4-9d91-472662bc804e" />
-<img width="1827" height="1316" alt="image" src="https://github.com/user-attachments/assets/b75186fb-ea1b-4bf4-b53b-e7a4fae45e6b" />
+<!-- <img width="1827" height="1316" alt="image" src="https://github.com/user-attachments/assets/b75186fb-ea1b-4bf4-b53b-e7a4fae45e6b" /> -->
+<img width="1687" height="1207" alt="Screenshot 2025-11-09 013854" src="https://github.com/user-attachments/assets/8ffc0c26-7774-40f2-bbb1-6dc06e5605cc" />
+
 
